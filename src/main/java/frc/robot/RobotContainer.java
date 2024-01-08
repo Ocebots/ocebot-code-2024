@@ -37,7 +37,9 @@ public class RobotContainer {
   }
 
   private void configureBindings() {
-    this.controller.a().onTrue(Commands.runOnce(() -> this.driveSubsystem.zeroHeading(), this.driveSubsystem));
+    this.controller
+        .a()
+        .onTrue(Commands.runOnce(() -> this.driveSubsystem.zeroHeading(), this.driveSubsystem));
     this.controller
         .rightBumper()
         .whileTrue(Commands.run(() -> this.driveSubsystem.setX(), this.driveSubsystem));
