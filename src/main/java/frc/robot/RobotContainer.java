@@ -6,8 +6,14 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.constants.ControllerConstants;
+import frc.robot.subsystems.DriveSubsystem;
 
 public class RobotContainer {
+  DriveSubsystem driveSubsystem = new DriveSubsystem();
+  CommandXboxController controller = new CommandXboxController(ControllerConstants.DRIVER_CONTROLLER_PORT);
+
   public RobotContainer() {
     configureBindings();
   }
