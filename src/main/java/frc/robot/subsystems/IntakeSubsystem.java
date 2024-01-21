@@ -8,4 +8,8 @@ public class IntakeSubsystem {
   private Command runIntake() {
     return null; // TODO: Run the intake motors, nothing else
   }
+
+  public Command intake(ShootSubsystem shooter) {
+    return null; // TODO: Intake a note fully, so that it is ready to be shot
+  }
 }
