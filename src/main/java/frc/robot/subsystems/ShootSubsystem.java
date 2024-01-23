@@ -1,10 +1,28 @@
 package frc.robot.subsystems;
 
+import com.revrobotics.CANSparkLowLevel.MotorType;
+import com.revrobotics.CANSparkMax;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.constants.CANMappings;
 
 public class ShootSubsystem {
+  private CANSparkMax leftElevator =
+      new CANSparkMax(CANMappings.ELEVATOR_LEFT, MotorType.kBrushless);
+  private CANSparkMax rightElevator =
+      new CANSparkMax(CANMappings.ELEVATOR_RIGHT, MotorType.kBrushless);
+
+  private CANSparkMax leftShooter = new CANSparkMax(CANMappings.SHOOTER_LEFT, MotorType.kBrushless);
+  private CANSparkMax rightShooter =
+      new CANSparkMax(CANMappings.SHOOTER_RIGHT, MotorType.kBrushless);
+
+  private CANSparkMax leftTilt = new CANSparkMax(CANMappings.TILT_LEFT, MotorType.kBrushless);
+  private CANSparkMax rightTilt = new CANSparkMax(CANMappings.TILT_RIGHT, MotorType.kBrushless);
+
+  private CANSparkMax intermediate =
+      new CANSparkMax(CANMappings.INTERMEDIATE, MotorType.kBrushless);
+
   public ShootSubsystem() {}
 
   /*
