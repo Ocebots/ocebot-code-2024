@@ -11,4 +11,13 @@ public class CANMappings {
   public static final int REAR_LEFT_TURNING = 6;
   public static final int FRONT_RIGHT_TURNING = 2;
   public static final int REAR_RIGHT_TURNING = 8;
+
+  public static final int INTAKE = 9;
+  public static final int ELEVATOR_LEFT = 10;
+  public static final int ELEVATOR_RIGHT = 11;
+  public static final int TILT_LEFT = 12;
+  public static final int TILT_RIGHT = 13;
+  public static final int SHOOTER_LEFT = 14;
+  public static final int SHOOTER_RIGHT = 15;
+  public static final int INTERMEDIATE = 16;
 }
