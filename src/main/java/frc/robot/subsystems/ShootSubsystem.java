@@ -62,7 +62,6 @@ public class ShootSubsystem extends SubsystemBase {
     leftTilt.follow(rightTilt);
     leftElevator.follow(rightElevator);
 
-    // rotations to radians
     tiltEncoder.setPositionConversionFactor(TiltConstants.POSITION_CONVERSION_FACTOR);
     tiltEncoder.setVelocityConversionFactor(TiltConstants.VELOCITY_CONVERSION_FACTOR);
 
