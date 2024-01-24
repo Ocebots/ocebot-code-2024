@@ -40,10 +40,10 @@ public class ShootSubsystem extends SubsystemBase {
 
   private RelativeEncoder heightEncoder = rightElevator.getEncoder();
 
-  private Rotation2d currentTargetAngle = Rotation2d.fromDegrees(0);
+  private Rotation2d targetAngle = Rotation2d.fromDegrees(0);
   private double angleStartTime = 0;
 
-  private double currentTargetHeight = 0;
+  private double targetHeight = 0;
   private double heightStartTime = 0;
 
   public ShootSubsystem() {
@@ -52,8 +52,11 @@ public class ShootSubsystem extends SubsystemBase {
     leftElevator.follow(rightElevator);
 
     // rotations to radians
-    tiltEncoder.setPositionConversionFactor(Math.PI * 2);
-    tiltEncoder.setVelocityConversionFactor(Math.PI * 2);
+    tiltEncoder.setPositionConversionFactor(TiltConstants.POSITION_CONVERSION_FACTOR);
+    tiltEncoder.setVelocityConversionFactor(TiltConstants.VELOCITY_CONVERSION_FACTOR);
+
+    heightEncoder.setPositionConversionFactor(HeightConstants.POSITION_CONVERSION_FACTOR);
+    heightEncoder.setVelocityConversionFactor(HeightConstants.VELOCITY_CONVERSION_FACTOR);
 
     ArmFeedforward armFeedforward =
         new ArmFeedforward(
@@ -70,15 +73,16 @@ public class ShootSubsystem extends SubsystemBase {
     Command tiltCommand =
         Commands.run(
             () -> {
+              double currentAngle = tiltEncoder.getPosition();
+
               TrapezoidProfile.State desiredState =
                   tiltProfile.calculate(
                       Timer.getFPGATimestamp() - angleStartTime,
-                      new TrapezoidProfile.State(
-                          tiltEncoder.getPosition(), tiltEncoder.getVelocity()),
-                      new TrapezoidProfile.State(currentTargetAngle.getRadians(), 0));
+                      new TrapezoidProfile.State(currentAngle, tiltEncoder.getVelocity()),
+                      new TrapezoidProfile.State(targetAngle.getRadians(), 0));
 
               rightTilt.setVoltage(
-                  tiltController.calculate(tiltEncoder.getPosition(), desiredState.position)
+                  tiltController.calculate(currentAngle, desiredState.position)
                       + armFeedforward.calculate(desiredState.position, desiredState.velocity));
             });
 
@@ -105,7 +109,7 @@ public class ShootSubsystem extends SubsystemBase {
                   heightProfile.calculate(
                       Timer.getFPGATimestamp() - heightStartTime,
                       new TrapezoidProfile.State(currentPosition, heightEncoder.getVelocity()),
-                      new TrapezoidProfile.State(currentTargetHeight, 0));
+                      new TrapezoidProfile.State(targetHeight, 0));
 
               rightElevator.setVoltage(
                   heightController.calculate(currentPosition, desiredState.position)
@@ -123,27 +127,28 @@ public class ShootSubsystem extends SubsystemBase {
   }
 
   private Command setAngle(Rotation2d newAngle) {
-    return Commands.runOnce(() -> this.currentTargetAngle = newAngle)
+    return Commands.runOnce(() -> this.targetAngle = newAngle)
         .andThen(
             Commands.waitUntil(
-                () ->
-                    tiltEncoder.getPosition()
-                            >= currentTargetAngle.getRadians()
-                                - TiltConstants.ANGLE_TOLERANCE.getRadians()
-                        && tiltEncoder.getPosition()
-                            <= currentTargetAngle.getRadians()
-                                + TiltConstants.ANGLE_TOLERANCE.getRadians()));
+                () -> {
+                  double currentAngle = tiltEncoder.getPosition();
+
+                  return currentAngle
+                          >= targetAngle.getRadians() - TiltConstants.ANGLE_TOLERANCE.getRadians()
+                      && currentAngle
+                          <= targetAngle.getRadians() + TiltConstants.ANGLE_TOLERANCE.getRadians();
+                }));
   }
 
   private Command setHeight(double meters) {
-    return Commands.runOnce(() -> this.currentTargetHeight = meters)
+    return Commands.runOnce(() -> this.targetHeight = meters)
         .andThen(
             Commands.waitUntil(
                 () -> {
                   double currentPosition = heightEncoder.getPosition();
 
-                  return currentPosition >= currentTargetHeight - HeightConstants.TOLERANCE
-                      && currentPosition <= currentTargetHeight + HeightConstants.TOLERANCE;
+                  return currentPosition >= targetHeight - HeightConstants.TOLERANCE
+                      && currentPosition <= targetHeight + HeightConstants.TOLERANCE;
                 }));
   }
 
