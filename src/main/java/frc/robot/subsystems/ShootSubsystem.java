@@ -3,8 +3,10 @@ package frc.robot.subsystems;
 import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkAbsoluteEncoder;
 import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -14,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.constants.CANMappings;
+import frc.constants.ShooterConstants.HeightConstants;
 import frc.constants.ShooterConstants.TiltConstants;
 
 public class ShootSubsystem extends SubsystemBase {
@@ -35,12 +38,18 @@ public class ShootSubsystem extends SubsystemBase {
   private AbsoluteEncoder tiltEncoder =
       rightTilt.getAbsoluteEncoder(SparkAbsoluteEncoder.Type.kDutyCycle);
 
+  private RelativeEncoder heightEncoder = rightElevator.getEncoder();
+
   private Rotation2d currentTargetAngle = Rotation2d.fromDegrees(0);
   private double angleStartTime = 0;
+
+  private double currentTargetHeight = 0;
+  private double heightStartTime = 0;
 
   public ShootSubsystem() {
     super();
     leftTilt.follow(rightTilt);
+    leftElevator.follow(rightElevator);
 
     // rotations to radians
     tiltEncoder.setPositionConversionFactor(Math.PI * 2);
@@ -58,7 +67,7 @@ public class ShootSubsystem extends SubsystemBase {
             new TrapezoidProfile.Constraints(
                 TiltConstants.MAX_ANGULAR_VELOCITY, TiltConstants.MAX_ANGULAR_ACCELERATION));
 
-    this.setDefaultCommand(
+    Command tiltCommand =
         Commands.run(
             () -> {
               TrapezoidProfile.State desiredState =
@@ -71,7 +80,39 @@ public class ShootSubsystem extends SubsystemBase {
               rightTilt.setVoltage(
                   tiltController.calculate(tiltEncoder.getPosition(), desiredState.position)
                       + armFeedforward.calculate(desiredState.position, desiredState.velocity));
-            }));
+            });
+
+    ElevatorFeedforward elevatorFeedforward =
+        new ElevatorFeedforward(
+            HeightConstants.STATIC_GAIN,
+            HeightConstants.GRAVITY_GAIN,
+            HeightConstants.VELOCITY_GAIN);
+
+    PIDController heightController =
+        new PIDController(HeightConstants.P_GAIN, HeightConstants.I_GAIN, HeightConstants.D_GAIN);
+
+    TrapezoidProfile heightProfile =
+        new TrapezoidProfile(
+            new TrapezoidProfile.Constraints(
+                HeightConstants.MAX_VELOCITY, HeightConstants.MAX_ACCELERATION));
+
+    Command heightCommand =
+        Commands.run(
+            () -> {
+              double currentPosition = heightEncoder.getPosition();
+
+              TrapezoidProfile.State desiredState =
+                  heightProfile.calculate(
+                      Timer.getFPGATimestamp() - heightStartTime,
+                      new TrapezoidProfile.State(currentPosition, heightEncoder.getVelocity()),
+                      new TrapezoidProfile.State(currentTargetHeight, 0));
+
+              rightElevator.setVoltage(
+                  heightController.calculate(currentPosition, desiredState.position)
+                      + elevatorFeedforward.calculate(desiredState.velocity));
+            });
+
+    this.setDefaultCommand(tiltCommand.alongWith(heightCommand));
   }
 
   /*
@@ -95,7 +136,15 @@ public class ShootSubsystem extends SubsystemBase {
   }
 
   private Command setHeight(double meters) {
-    return null; // TODO: Set the height of the arm to a certain amount
+    return Commands.runOnce(() -> this.currentTargetHeight = meters)
+        .andThen(
+            Commands.waitUntil(
+                () -> {
+                  double currentPosition = heightEncoder.getPosition();
+
+                  return currentPosition >= currentTargetHeight - HeightConstants.TOLERANCE
+                      && currentPosition <= currentTargetHeight + HeightConstants.TOLERANCE;
+                }));
   }
 
   public Command underStageMode() {
