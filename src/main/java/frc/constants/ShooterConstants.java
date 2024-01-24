@@ -1,5 +1,6 @@
 package frc.constants;
 
+import com.revrobotics.CANSparkBase.IdleMode;
 import edu.wpi.first.math.geometry.Rotation2d;
 
 public class ShooterConstants {
@@ -19,6 +20,9 @@ public class ShooterConstants {
 
     public static double POSITION_CONVERSION_FACTOR = 2 * Math.PI;
     public static double VELOCITY_CONVERSION_FACTOR = 2 * Math.PI;
+
+    public static IdleMode IDLE_MODE = IdleMode.kBrake;
+    public static int CURRENT_LIMIT = 50;
   }
 
   public static class HeightConstants {
@@ -37,5 +41,8 @@ public class ShooterConstants {
 
     public static double POSITION_CONVERSION_FACTOR = 2 * Math.PI;
     public static double VELOCITY_CONVERSION_FACTOR = 2 * Math.PI;
+
+    public static IdleMode IDLE_MODE = IdleMode.kBrake;
+    public static int CURRENT_LIMIT = 50;
   }
 }

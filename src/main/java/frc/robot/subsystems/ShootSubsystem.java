@@ -48,6 +48,17 @@ public class ShootSubsystem extends SubsystemBase {
 
   public ShootSubsystem() {
     super();
+
+    leftTilt.setSmartCurrentLimit(TiltConstants.CURRENT_LIMIT);
+    rightTilt.setSmartCurrentLimit(TiltConstants.CURRENT_LIMIT);
+    leftTilt.setIdleMode(TiltConstants.IDLE_MODE);
+    rightTilt.setIdleMode(TiltConstants.IDLE_MODE);
+
+    leftElevator.setSmartCurrentLimit(HeightConstants.CURRENT_LIMIT);
+    rightElevator.setSmartCurrentLimit(HeightConstants.CURRENT_LIMIT);
+    leftElevator.setIdleMode(HeightConstants.IDLE_MODE);
+    rightElevator.setIdleMode(HeightConstants.IDLE_MODE);
+
     leftTilt.follow(rightTilt);
     leftElevator.follow(rightElevator);
 
@@ -57,6 +68,8 @@ public class ShootSubsystem extends SubsystemBase {
 
     heightEncoder.setPositionConversionFactor(HeightConstants.POSITION_CONVERSION_FACTOR);
     heightEncoder.setVelocityConversionFactor(HeightConstants.VELOCITY_CONVERSION_FACTOR);
+
+    targetAngle = Rotation2d.fromRadians(tiltEncoder.getPosition());
 
     ArmFeedforward armFeedforward =
         new ArmFeedforward(
@@ -127,7 +140,11 @@ public class ShootSubsystem extends SubsystemBase {
   }
 
   private Command setAngle(Rotation2d newAngle) {
-    return Commands.runOnce(() -> this.targetAngle = newAngle)
+    return Commands.runOnce(
+            () -> {
+              this.targetAngle = newAngle;
+              this.angleStartTime = Timer.getFPGATimestamp();
+            })
         .andThen(
             Commands.waitUntil(
                 () -> {
@@ -141,7 +158,11 @@ public class ShootSubsystem extends SubsystemBase {
   }
 
   private Command setHeight(double meters) {
-    return Commands.runOnce(() -> this.targetHeight = meters)
+    return Commands.runOnce(
+            () -> {
+              this.targetHeight = meters;
+              this.heightStartTime = Timer.getFPGATimestamp();
+            })
         .andThen(
             Commands.waitUntil(
                 () -> {
