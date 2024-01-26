@@ -1,7 +1,9 @@
 package frc.robot.controller;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.constants.ControllerConstants;
 
 public class XboxSoloController implements Controller {
   CommandXboxController controller = new CommandXboxController(0);
@@ -33,16 +35,16 @@ public class XboxSoloController implements Controller {
 
   @Override
   public double getDriveX() {
-    return -controller.getLeftY();
+    return MathUtil.applyDeadband(-controller.getLeftY(), ControllerConstants.DRIVE_DEADBAND);
   }
 
   @Override
   public double getDriveY() {
-    return -controller.getLeftX();
+    return MathUtil.applyDeadband(-controller.getLeftX(), ControllerConstants.DRIVE_DEADBAND);
   }
 
   @Override
-  public double getDriveTurn() {
-    return controller.getRightX();
+  public double getDriveTurn() { // TODO: Do we need the negative?
+    return MathUtil.applyDeadband(-controller.getRightX(), ControllerConstants.DRIVE_DEADBAND);
   }
 }
