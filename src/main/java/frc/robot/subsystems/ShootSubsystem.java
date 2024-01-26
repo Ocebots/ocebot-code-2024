@@ -5,9 +5,10 @@ import com.revrobotics.CANSparkMax;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.constants.CANMappings;
 
-public class ShootSubsystem {
+public class ShootSubsystem extends SubsystemBase {
   private CANSparkMax leftElevator =
       new CANSparkMax(CANMappings.ELEVATOR_LEFT, MotorType.kBrushless);
   private CANSparkMax rightElevator =
