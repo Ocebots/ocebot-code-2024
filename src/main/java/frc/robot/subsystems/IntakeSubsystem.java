@@ -11,13 +11,16 @@ import frc.constants.IntakeConstants;
 public class IntakeSubsystem extends SubsystemBase {
   private CANSparkMax motor = new CANSparkMax(CANMappings.INTAKE, MotorType.kBrushless);
 
-  public IntakeSubsystem() {}
+  public IntakeSubsystem() {
+    motor.setSmartCurrentLimit(IntakeConstants.CURRENT_LIMIT);
+    motor.setIdleMode(IntakeConstants.IDLE_MODE);
+  }
 
   /**
    * @return a command that will run forever that sets the motor to intake
    */
   private Command runIntake() {
-    return Commands.runEnd(() -> motor.set(IntakeConstants.INTAKE_SPEED), () -> motor.set(0));
+    return Commands.runEnd(() -> motor.set(IntakeConstants.SPEED), () -> motor.set(0));
   }
 
   public Command intake(ShootSubsystem shooter) {
