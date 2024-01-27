@@ -199,7 +199,7 @@ public class ShootSubsystem extends SubsystemBase {
                 Commands.runEnd(
                         () -> intermediate.set(IntermediateConstants.SHOOT_SPEED),
                         () -> intermediate.set(0))
-                    .withTimeout(1)));
+                    .withTimeout(IntermediateConstants.SHOOT_TIME)));
   }
 
   private Command setAngle(Rotation2d newAngle) {
