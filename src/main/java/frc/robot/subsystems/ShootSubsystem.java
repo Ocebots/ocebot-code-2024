@@ -169,11 +169,12 @@ public class ShootSubsystem extends SubsystemBase {
         new SimpleMotorFeedforward(
             ShooterMotorConstants.STATIC_GAIN, ShooterMotorConstants.VELOCITY_GAIN);
 
-    return Commands.run(
+    return Commands.runEnd(
         () -> {
           motor.setVoltage(
               pidController.calculate(encoder.getVelocity()) + feedforward.calculate(velocity));
-        });
+        },
+        () -> motor.set(0));
   }
 
   private Command waitForVelocityOneSide(double velocity, RelativeEncoder encoder) {
@@ -186,7 +187,11 @@ public class ShootSubsystem extends SubsystemBase {
   }
 
   /*
-   * @param velocity meters per second of the ring
+   * Sets the velocity of each wheel and waits for it to reach it. Then run the
+   * shoot speed for a set amount of time. This does not rely on this subsystem
+   * because it is internal.
+   *
+   * @param velocity The desired velocity of the note as it exits the schooter
    */
   private Command shoot(double velocity) {
     return Commands.race(
@@ -202,6 +207,14 @@ public class ShootSubsystem extends SubsystemBase {
                     .withTimeout(IntermediateConstants.SHOOT_TIME)));
   }
 
+  /*
+   * Sets the angle of the arm and waits until it is set. If the angle is set by
+   * another command before it is finished, the command will complete when the new
+   * target is reached. This command does not rely on this subsystem because it is
+   * internal. Zero is horizontal forward and 90 degrees is up.
+   *
+   * @param newAngle The abosolute angle of the arm
+   */
   private Command setAngle(Rotation2d newAngle) {
     return Commands.runOnce(
             () -> {
@@ -220,6 +233,14 @@ public class ShootSubsystem extends SubsystemBase {
                 }));
   }
 
+  /*
+   * Sets the height of the arm and waits until it is set. If the height is set by
+   * another command before it is finished, the command will complete when the new
+   * target is reached. This command does not rely on this subsystem because it is
+   * internal
+   *
+   * @param meters The abosolute height in meters of the arm
+   */
   private Command setHeight(double meters) {
     return Commands.runOnce(
             () -> {
