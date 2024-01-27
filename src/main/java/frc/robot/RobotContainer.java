@@ -6,7 +6,6 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.controller.Controller;
 import frc.robot.controller.XboxSoloController;
 import frc.robot.subsystems.DriveSubsystem;
@@ -33,8 +32,7 @@ public class RobotContainer {
             driveSubsystem)); // Maybe change this?
   }
 
-  private void configureBindings() {
-  }
+  private void configureBindings() {}
 
   public Command getAutonomousCommand() {
     return Commands.print("No autonomous command configured");
