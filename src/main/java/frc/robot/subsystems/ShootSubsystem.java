@@ -181,8 +181,8 @@ public class ShootSubsystem extends SubsystemBase {
     return Commands.waitUntil(
         () -> {
           double currentVelocity = encoder.getVelocity();
-          return currentVelocity >= velocity + ShooterMotorConstants.TOLERANCE
-              && currentVelocity <= velocity - ShooterMotorConstants.TOLERANCE;
+          return currentVelocity >= velocity - ShooterMotorConstants.TOLERANCE
+              && currentVelocity <= velocity + ShooterMotorConstants.TOLERANCE;
         });
   }
 
