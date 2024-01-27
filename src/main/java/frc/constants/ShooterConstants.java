@@ -62,4 +62,12 @@ public class ShooterConstants {
     public static double STATIC_GAIN = 0;
     public static double VELOCITY_GAIN = 0;
   }
+
+  public static class IntermediateConstants {
+    public static int CURRENT_LIMIT = 20;
+    public static IdleMode IDLE_MODE = IdleMode.kBrake;
+
+    public static double SHOOT_SPEED = 0.5;
+    public static double SHOOT_TIME = 1;
+  }
 }

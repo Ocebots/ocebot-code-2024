@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.constants.CANMappings;
 import frc.constants.ShooterConstants.HeightConstants;
+import frc.constants.ShooterConstants.IntermediateConstants;
 import frc.constants.ShooterConstants.ShooterMotorConstants;
 import frc.constants.ShooterConstants.TiltConstants;
 
@@ -70,6 +71,9 @@ public class ShootSubsystem extends SubsystemBase {
     rightShooter.setSmartCurrentLimit(ShooterMotorConstants.CURRENT_LIMIT);
     leftShooter.setIdleMode(ShooterMotorConstants.IDLE_MODE);
     rightShooter.setIdleMode(ShooterMotorConstants.IDLE_MODE);
+
+    intermediate.setIdleMode(IntermediateConstants.IDLE_MODE);
+    intermediate.setSmartCurrentLimit(IntermediateConstants.CURRENT_LIMIT);
 
     leftShooterEncoder.setPositionConversionFactor(
         ShooterMotorConstants.POSITION_CONVERSION_FACTOR);
@@ -185,13 +189,17 @@ public class ShootSubsystem extends SubsystemBase {
    * @param velocity meters per second of the ring
    */
   private Command shoot(double velocity) {
-    return Commands.parallel(
+    return Commands.race(
         setVelocityOneSide(velocity, leftShooter, leftShooterEncoder),
         setVelocityOneSide(velocity, rightShooter, rightShooterEncoder),
         Commands.parallel(
                 waitForVelocityOneSide(velocity, leftShooterEncoder),
                 waitForVelocityOneSide(velocity, rightShooterEncoder))
-            .andThen(Commands.none())); // TODO: Run the intermediate motor
+            .andThen(
+                Commands.runEnd(
+                        () -> intermediate.set(IntermediateConstants.SHOOT_SPEED),
+                        () -> intermediate.set(0))
+                    .withTimeout(1)));
   }
 
   private Command setAngle(Rotation2d newAngle) {
