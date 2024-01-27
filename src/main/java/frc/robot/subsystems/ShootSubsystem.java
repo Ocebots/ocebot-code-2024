@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.AbsoluteEncoder;
+import com.revrobotics.CANSparkFlex;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
@@ -8,6 +9,7 @@ import com.revrobotics.SparkAbsoluteEncoder;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -17,6 +19,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.constants.CANMappings;
 import frc.constants.ShooterConstants.HeightConstants;
+import frc.constants.ShooterConstants.ShooterMotorConstants;
 import frc.constants.ShooterConstants.TiltConstants;
 
 public class ShootSubsystem extends SubsystemBase {
@@ -25,9 +28,10 @@ public class ShootSubsystem extends SubsystemBase {
   private CANSparkMax rightElevator =
       new CANSparkMax(CANMappings.ELEVATOR_RIGHT, MotorType.kBrushless);
 
-  private CANSparkMax leftShooter = new CANSparkMax(CANMappings.SHOOTER_LEFT, MotorType.kBrushless);
-  private CANSparkMax rightShooter =
-      new CANSparkMax(CANMappings.SHOOTER_RIGHT, MotorType.kBrushless);
+  private CANSparkFlex leftShooter =
+      new CANSparkFlex(CANMappings.SHOOTER_LEFT, MotorType.kBrushless);
+  private CANSparkFlex rightShooter =
+      new CANSparkFlex(CANMappings.SHOOTER_RIGHT, MotorType.kBrushless);
 
   private CANSparkMax leftTilt = new CANSparkMax(CANMappings.TILT_LEFT, MotorType.kBrushless);
   private CANSparkMax rightTilt = new CANSparkMax(CANMappings.TILT_RIGHT, MotorType.kBrushless);
@@ -39,6 +43,9 @@ public class ShootSubsystem extends SubsystemBase {
       rightTilt.getAbsoluteEncoder(SparkAbsoluteEncoder.Type.kDutyCycle);
 
   private RelativeEncoder heightEncoder = rightElevator.getEncoder();
+
+  private RelativeEncoder leftShooterEncoder = leftShooter.getEncoder();
+  private RelativeEncoder rightShooterEncoder = rightShooter.getEncoder();
 
   private Rotation2d targetAngle = Rotation2d.fromDegrees(0);
   private double angleStartTime = 0;
@@ -58,6 +65,20 @@ public class ShootSubsystem extends SubsystemBase {
     rightElevator.setSmartCurrentLimit(HeightConstants.CURRENT_LIMIT);
     leftElevator.setIdleMode(HeightConstants.IDLE_MODE);
     rightElevator.setIdleMode(HeightConstants.IDLE_MODE);
+
+    leftShooter.setSmartCurrentLimit(ShooterMotorConstants.CURRENT_LIMIT);
+    rightShooter.setSmartCurrentLimit(ShooterMotorConstants.CURRENT_LIMIT);
+    leftShooter.setIdleMode(ShooterMotorConstants.IDLE_MODE);
+    rightShooter.setIdleMode(ShooterMotorConstants.IDLE_MODE);
+
+    leftShooterEncoder.setPositionConversionFactor(
+        ShooterMotorConstants.POSITION_CONVERSION_FACTOR);
+    leftShooterEncoder.setVelocityConversionFactor(
+        ShooterMotorConstants.VELOCITY_CONVERSION_FACTOR);
+    rightShooterEncoder.setPositionConversionFactor(
+        ShooterMotorConstants.POSITION_CONVERSION_FACTOR);
+    rightShooterEncoder.setVelocityConversionFactor(
+        ShooterMotorConstants.VELOCITY_CONVERSION_FACTOR);
 
     leftTilt.follow(rightTilt);
     leftElevator.follow(rightElevator);
@@ -131,11 +152,46 @@ public class ShootSubsystem extends SubsystemBase {
     this.setDefaultCommand(tiltCommand.alongWith(heightCommand));
   }
 
+  private Command setVelocityOneSide(double velocity, CANSparkFlex motor, RelativeEncoder encoder) {
+    PIDController pidController =
+        new PIDController(
+            ShooterMotorConstants.P_GAIN,
+            ShooterMotorConstants.I_GAIN,
+            ShooterMotorConstants.D_GAIN);
+
+    pidController.setSetpoint(velocity);
+
+    SimpleMotorFeedforward feedforward =
+        new SimpleMotorFeedforward(
+            ShooterMotorConstants.STATIC_GAIN, ShooterMotorConstants.VELOCITY_GAIN);
+
+    return Commands.run(
+        () -> {
+          motor.setVoltage(
+              pidController.calculate(encoder.getVelocity()) + feedforward.calculate(velocity));
+        });
+  }
+
+  private Command waitForVelocityOneSide(double velocity, RelativeEncoder encoder) {
+    return Commands.waitUntil(
+        () -> {
+          double currentVelocity = encoder.getVelocity();
+          return currentVelocity >= velocity + ShooterMotorConstants.TOLERANCE
+              && currentVelocity <= velocity - ShooterMotorConstants.TOLERANCE;
+        });
+  }
+
   /*
    * @param velocity meters per second of the ring
    */
   private Command shoot(double velocity) {
-    return null; // TODO: Make it shoot at the current angle
+    return Commands.parallel(
+        setVelocityOneSide(velocity, leftShooter, leftShooterEncoder),
+        setVelocityOneSide(velocity, rightShooter, rightShooterEncoder),
+        Commands.parallel(
+                waitForVelocityOneSide(velocity, leftShooterEncoder),
+                waitForVelocityOneSide(velocity, rightShooterEncoder))
+            .andThen(Commands.none())); // TODO: Run the intermediate motor
   }
 
   private Command setAngle(Rotation2d newAngle) {

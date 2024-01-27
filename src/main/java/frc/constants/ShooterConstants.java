@@ -39,10 +39,27 @@ public class ShooterConstants {
 
     public static double TOLERANCE = 0.03;
 
-    public static double POSITION_CONVERSION_FACTOR = 2 * Math.PI;
-    public static double VELOCITY_CONVERSION_FACTOR = 2 * Math.PI;
+    public static double POSITION_CONVERSION_FACTOR = 0;
+    public static double VELOCITY_CONVERSION_FACTOR = 0;
 
     public static IdleMode IDLE_MODE = IdleMode.kBrake;
     public static int CURRENT_LIMIT = 50;
+  }
+
+  public static class ShooterMotorConstants {
+    public static int CURRENT_LIMIT = 50;
+    public static IdleMode IDLE_MODE = IdleMode.kBrake;
+
+    public static double TOLERANCE = 0.5;
+
+    public static double POSITION_CONVERSION_FACTOR = 0;
+    public static double VELOCITY_CONVERSION_FACTOR = 0;
+
+    public static double P_GAIN = 0;
+    public static double I_GAIN = 0;
+    public static double D_GAIN = 0;
+
+    public static double STATIC_GAIN = 0;
+    public static double VELOCITY_GAIN = 0;
   }
 }
