@@ -24,6 +24,7 @@ import frc.constants.ShooterConstants.HeightConstants;
 import frc.constants.ShooterConstants.IntermediateConstants;
 import frc.constants.ShooterConstants.ShooterMotorConstants;
 import frc.constants.ShooterConstants.TiltConstants;
+import frc.utils.CommandRequirements;
 
 public class ShootSubsystem extends SubsystemBase {
   private CANSparkMax leftElevator =
@@ -267,13 +268,15 @@ public class ShootSubsystem extends SubsystemBase {
   }
 
   public Command intakeMode() {
-    return setHeightAndTilt(ShooterConstants.INTAKE_HEIGHT, ShooterConstants.INTAKE_ANGLE)
-        .andThen(
-            Commands.runOnce(
-                () -> {
-                  intermediateEncoder.setPosition(0);
-                  intermediate.setIdleMode(IdleMode.kCoast);
-                }));
+    return CommandRequirements.withRequirements(
+        setHeightAndTilt(ShooterConstants.INTAKE_HEIGHT, ShooterConstants.INTAKE_ANGLE)
+            .andThen(
+                Commands.runOnce(
+                    () -> {
+                      intermediateEncoder.setPosition(0);
+                      intermediate.setIdleMode(IdleMode.kCoast);
+                    })),
+        this);
   }
 
   public Command waitForIntake() {

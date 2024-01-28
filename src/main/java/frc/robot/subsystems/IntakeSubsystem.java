@@ -20,10 +20,13 @@ public class IntakeSubsystem extends SubsystemBase {
    * @return a command that will run forever that sets the motor to intake
    */
   private Command runIntake() {
-    return Commands.runEnd(() -> motor.set(IntakeConstants.SPEED), () -> motor.set(0));
+    return Commands.runEnd(() -> motor.set(IntakeConstants.SPEED), () -> motor.set(0), this);
   }
 
   public Command intake(ShootSubsystem shooter) {
-    return null; // TODO: Intake a note fully, so that it is ready to be shot
+    return shooter
+        .intakeMode()
+        .andThen(runIntake().raceWith(shooter.waitForIntake()))
+        .andThen(shooter.completeIntake());
   }
 }
