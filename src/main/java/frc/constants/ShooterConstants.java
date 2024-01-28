@@ -69,5 +69,22 @@ public class ShooterConstants {
 
     public static double SHOOT_SPEED = 0.5;
     public static double SHOOT_TIME = 1;
+
+    public static double P_GAIN = 0;
+    public static double I_GAIN = 0;
+    public static double D_GAIN = 0;
+
+    public static double TOLERANCE = 0.5;
+
+    public static double POSITION_CONVERSION_FACTOR = 0;
+    public static double VELOCITY_CONVERSION_FACTOR = 0;
+
+    public static double STATIC_GAIN = 0;
+    public static double VELOCITY_GAIN = 0;
+
+    public static double MAX_VELOCITY = 0;
+    public static double MAX_ACCELERATION = 0;
+
+    public static double FINAL_OFFSET = 0;
   }
 }

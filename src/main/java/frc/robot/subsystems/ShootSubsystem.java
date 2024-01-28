@@ -48,6 +48,8 @@ public class ShootSubsystem extends SubsystemBase {
   private RelativeEncoder leftShooterEncoder = leftShooter.getEncoder();
   private RelativeEncoder rightShooterEncoder = rightShooter.getEncoder();
 
+  private RelativeEncoder intermediateEncoder = intermediate.getEncoder();
+
   private Rotation2d targetAngle = Rotation2d.fromDegrees(0);
   private double angleStartTime = 0;
 
@@ -74,6 +76,11 @@ public class ShootSubsystem extends SubsystemBase {
 
     intermediate.setIdleMode(IntermediateConstants.IDLE_MODE);
     intermediate.setSmartCurrentLimit(IntermediateConstants.CURRENT_LIMIT);
+
+    intermediateEncoder.setPositionConversionFactor(
+        IntermediateConstants.POSITION_CONVERSION_FACTOR);
+    intermediateEncoder.setVelocityConversionFactor(
+        IntermediateConstants.VELOCITY_CONVERSION_FACTOR);
 
     leftShooterEncoder.setPositionConversionFactor(
         ShooterMotorConstants.POSITION_CONVERSION_FACTOR);
@@ -257,16 +264,59 @@ public class ShootSubsystem extends SubsystemBase {
                 }));
   }
 
-  private Command intakeMode() {
-    return null; // TODO: Set the angle and height to be able to intake, also zero the intermediate encoder
+  public Command intakeMode() {
+    return null; // TODO: Set the angle and height to be able to intake, also zero the intermediate
+    // encoder
   }
 
-  private Command waitForIntake() {
-    return null; // TODO: Wait for the intermediate motor to move
+  public Command waitForIntake() {
+    return Commands.waitUntil(
+        () -> Math.abs(intermediateEncoder.getPosition()) > IntermediateConstants.TOLERANCE);
   }
 
-  private Command completeIntake() {
-    return null; // TODO: move fully into the shooter
+  public Command completeIntake() {
+    PIDController controller =
+        new PIDController(
+            IntermediateConstants.P_GAIN,
+            IntermediateConstants.I_GAIN,
+            IntermediateConstants.D_GAIN);
+    SimpleMotorFeedforward feedforward =
+        new SimpleMotorFeedforward(
+            IntermediateConstants.STATIC_GAIN, IntermediateConstants.VELOCITY_GAIN);
+    TrapezoidProfile profile =
+        new TrapezoidProfile(
+            new TrapezoidProfile.Constraints(
+                IntermediateConstants.MAX_VELOCITY, IntermediateConstants.MAX_ACCELERATION));
+
+    Timer timer = new Timer();
+    timer.start();
+
+    return Commands.runEnd(
+            () -> {
+              double currentPosititon = intermediateEncoder.getPosition();
+              TrapezoidProfile.State desiredState =
+                  profile.calculate(
+                      timer.get(),
+                      new TrapezoidProfile.State(
+                          currentPosititon, intermediateEncoder.getVelocity()),
+                      new TrapezoidProfile.State(IntermediateConstants.FINAL_OFFSET, 0));
+
+              intermediate.setVoltage(
+                  controller.calculate(currentPosititon, desiredState.position)
+                      + feedforward.calculate(desiredState.velocity));
+            },
+            () -> intermediate.set(0),
+            this)
+        .until(
+            () -> {
+              double currentPosition = intermediateEncoder.getPosition();
+
+              return currentPosition
+                      >= IntermediateConstants.FINAL_OFFSET - IntermediateConstants.TOLERANCE
+                  && currentPosition
+                      <= IntermediateConstants.FINAL_OFFSET + IntermediateConstants.TOLERANCE;
+            });
+  }
 
   public Command underStageMode() {
     return null; // TODO: Set the angle and height to be able to go under the stage
