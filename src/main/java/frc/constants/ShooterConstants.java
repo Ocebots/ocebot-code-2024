@@ -4,6 +4,9 @@ import com.revrobotics.CANSparkBase.IdleMode;
 import edu.wpi.first.math.geometry.Rotation2d;
 
 public class ShooterConstants {
+  public static double INTAKE_HEIGHT = 0;
+  public static Rotation2d INTAKE_ANGLE = Rotation2d.fromDegrees(0);
+
   public static class TiltConstants {
     public static double GRAVITY_GAIN = 0;
     public static double STATIC_GAIN = 0;

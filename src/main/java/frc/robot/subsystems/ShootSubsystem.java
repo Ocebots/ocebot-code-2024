@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.AbsoluteEncoder;
+import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkFlex;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
@@ -18,6 +19,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.constants.CANMappings;
+import frc.constants.ShooterConstants;
 import frc.constants.ShooterConstants.HeightConstants;
 import frc.constants.ShooterConstants.IntermediateConstants;
 import frc.constants.ShooterConstants.ShooterMotorConstants;
@@ -265,8 +267,13 @@ public class ShootSubsystem extends SubsystemBase {
   }
 
   public Command intakeMode() {
-    return null; // TODO: Set the angle and height to be able to intake, also zero the intermediate
-    // encoder
+    return setHeightAndTilt(ShooterConstants.INTAKE_HEIGHT, ShooterConstants.INTAKE_ANGLE)
+        .andThen(
+            Commands.runOnce(
+                () -> {
+                  intermediateEncoder.setPosition(0);
+                  intermediate.setIdleMode(IdleMode.kCoast);
+                }));
   }
 
   public Command waitForIntake() {
