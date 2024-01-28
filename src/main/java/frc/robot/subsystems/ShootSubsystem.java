@@ -318,6 +318,10 @@ public class ShootSubsystem extends SubsystemBase {
             });
   }
 
+  private Command setHeightAndTilt(double height, Rotation2d angle) {
+    return Commands.parallel(setHeight(height), setAngle(angle));
+  }
+
   public Command underStageMode() {
     return null; // TODO: Set the angle and height to be able to go under the stage
   }
