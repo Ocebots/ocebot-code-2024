@@ -257,6 +257,17 @@ public class ShootSubsystem extends SubsystemBase {
                 }));
   }
 
+  private Command intakeMode() {
+    return null; // TODO: Set the angle and height to be able to intake, also zero the intermediate encoder
+  }
+
+  private Command waitForIntake() {
+    return null; // TODO: Wait for the intermediate motor to move
+  }
+
+  private Command completeIntake() {
+    return null; // TODO: move fully into the shooter
+
   public Command underStageMode() {
     return null; // TODO: Set the angle and height to be able to go under the stage
   }
