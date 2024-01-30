@@ -155,6 +155,8 @@ public class ShootSubsystem extends SubsystemBase {
             });
 
     CommandScheduler.getInstance().schedule(tiltCommand, heightCommand);
+
+    this.setDefaultCommand(this.underStageMode().repeatedly());
   }
 
   private Command setVelocityOneSide(double velocity, CANSparkFlex motor, RelativeEncoder encoder) {
@@ -259,7 +261,7 @@ public class ShootSubsystem extends SubsystemBase {
   }
 
   private Command setHeightAndTilt(double height, Rotation2d angle) {
-    return Commands.parallel(setHeight(height), setAngle(angle));
+    return Commands.parallel(setHeight(height), setAngle(angle), Commands.run(() -> {}, this));
   }
 
   public Command underStageMode() {
