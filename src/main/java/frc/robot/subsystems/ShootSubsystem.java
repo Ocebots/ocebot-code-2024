@@ -76,6 +76,9 @@ public class ShootSubsystem extends SubsystemBase {
     intermediate.setIdleMode(IntermediateConstants.IDLE_MODE);
     intermediate.setSmartCurrentLimit(IntermediateConstants.CURRENT_LIMIT);
 
+    leftShooter.setInverted(true);
+    leftShooterEncoder.setInverted(true);
+
     leftShooterEncoder.setPositionConversionFactor(
         ShooterMotorConstants.POSITION_CONVERSION_FACTOR);
     leftShooterEncoder.setVelocityConversionFactor(
@@ -85,7 +88,7 @@ public class ShootSubsystem extends SubsystemBase {
     rightShooterEncoder.setVelocityConversionFactor(
         ShooterMotorConstants.VELOCITY_CONVERSION_FACTOR);
 
-    leftTilt.follow(rightTilt);
+    leftTilt.follow(rightTilt, true);
     leftElevator.follow(rightElevator);
 
     tiltEncoder.setPositionConversionFactor(TiltConstants.POSITION_CONVERSION_FACTOR);
