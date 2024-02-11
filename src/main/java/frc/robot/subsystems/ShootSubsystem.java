@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.AbsoluteEncoder;
+import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkFlex;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
@@ -19,6 +20,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.constants.CANMappings;
+import frc.constants.ShooterConstants;
 import frc.constants.ShooterConstants.HeightConstants;
 import frc.constants.ShooterConstants.IntermediateConstants;
 import frc.constants.ShooterConstants.ShooterMotorConstants;
@@ -49,6 +51,8 @@ public class ShootSubsystem extends SubsystemBase {
   private RelativeEncoder leftShooterEncoder = leftShooter.getEncoder();
   private RelativeEncoder rightShooterEncoder = rightShooter.getEncoder();
 
+  private RelativeEncoder intermediateEncoder = intermediate.getEncoder();
+
   private Rotation2d targetAngle = Rotation2d.fromDegrees(0);
   private double angleStartTime = 0;
 
@@ -75,6 +79,11 @@ public class ShootSubsystem extends SubsystemBase {
 
     intermediate.setIdleMode(IntermediateConstants.IDLE_MODE);
     intermediate.setSmartCurrentLimit(IntermediateConstants.CURRENT_LIMIT);
+
+    intermediateEncoder.setPositionConversionFactor(
+        IntermediateConstants.POSITION_CONVERSION_FACTOR);
+    intermediateEncoder.setVelocityConversionFactor(
+        IntermediateConstants.VELOCITY_CONVERSION_FACTOR);
 
     leftShooter.setInverted(true);
     leftShooterEncoder.setInverted(true);
@@ -261,6 +270,65 @@ public class ShootSubsystem extends SubsystemBase {
                   return currentPosition >= targetHeight - HeightConstants.TOLERANCE
                       && currentPosition <= targetHeight + HeightConstants.TOLERANCE;
                 }));
+  }
+
+  public Command intakeMode() {
+    return setHeightAndTilt(ShooterConstants.INTAKE_HEIGHT, ShooterConstants.INTAKE_ANGLE)
+        .andThen(
+            Commands.runOnce(
+                () -> {
+                  intermediateEncoder.setPosition(0);
+                  intermediate.setIdleMode(IdleMode.kCoast);
+                }));
+  }
+
+  public Command waitForIntake() {
+    return Commands.waitUntil(
+        () -> Math.abs(intermediateEncoder.getPosition()) > IntermediateConstants.TOLERANCE);
+  }
+
+  public Command completeIntake() {
+    PIDController controller =
+        new PIDController(
+            IntermediateConstants.P_GAIN,
+            IntermediateConstants.I_GAIN,
+            IntermediateConstants.D_GAIN);
+    SimpleMotorFeedforward feedforward =
+        new SimpleMotorFeedforward(
+            IntermediateConstants.STATIC_GAIN, IntermediateConstants.VELOCITY_GAIN);
+    TrapezoidProfile profile =
+        new TrapezoidProfile(
+            new TrapezoidProfile.Constraints(
+                IntermediateConstants.MAX_VELOCITY, IntermediateConstants.MAX_ACCELERATION));
+
+    Timer timer = new Timer();
+    timer.start();
+
+    return Commands.runEnd(
+            () -> {
+              double currentPosititon = intermediateEncoder.getPosition();
+              TrapezoidProfile.State desiredState =
+                  profile.calculate(
+                      timer.get(),
+                      new TrapezoidProfile.State(
+                          currentPosititon, intermediateEncoder.getVelocity()),
+                      new TrapezoidProfile.State(IntermediateConstants.FINAL_OFFSET, 0));
+
+              intermediate.setVoltage(
+                  controller.calculate(currentPosititon, desiredState.position)
+                      + feedforward.calculate(desiredState.velocity));
+            },
+            () -> intermediate.set(0),
+            this)
+        .until(
+            () -> {
+              double currentPosition = intermediateEncoder.getPosition();
+
+              return currentPosition
+                      >= IntermediateConstants.FINAL_OFFSET - IntermediateConstants.TOLERANCE
+                  && currentPosition
+                      <= IntermediateConstants.FINAL_OFFSET + IntermediateConstants.TOLERANCE;
+            });
   }
 
   private Command setHeightAndTilt(double height, Rotation2d angle) {
