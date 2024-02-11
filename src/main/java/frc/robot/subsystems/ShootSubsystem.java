@@ -264,7 +264,8 @@ public class ShootSubsystem extends SubsystemBase {
   }
 
   private Command setHeightAndTilt(double height, Rotation2d angle) {
-    return Commands.parallel(setHeight(height), setAngle(angle), Commands.run(() -> {}, this));
+    return Commands.parallel(setHeight(height), setAngle(angle))
+        .raceWith(Commands.run(() -> {}, this));
   }
 
   public Command underStageMode() {
