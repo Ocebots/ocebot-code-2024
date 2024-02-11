@@ -55,8 +55,8 @@ public class ShooterConstants {
 
     public static double TOLERANCE = 0.5;
 
-    public static double POSITION_CONVERSION_FACTOR = 0;
-    public static double VELOCITY_CONVERSION_FACTOR = 0;
+    public static double POSITION_CONVERSION_FACTOR = Math.PI * 0.0762;
+    public static double VELOCITY_CONVERSION_FACTOR = POSITION_CONVERSION_FACTOR / 60;
 
     public static double P_GAIN = 0;
     public static double I_GAIN = 0;
