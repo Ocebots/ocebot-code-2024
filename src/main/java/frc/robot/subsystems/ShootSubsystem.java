@@ -16,12 +16,10 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.constants.CANMappings;
 import frc.constants.ShooterConstants.HeightConstants;
-import frc.constants.ShooterConstants.IntermediateConstants;
 import frc.constants.ShooterConstants.ShooterMotorConstants;
 import frc.constants.ShooterConstants.TiltConstants;
 
@@ -31,24 +29,24 @@ public class ShootSubsystem extends SubsystemBase {
   private CANSparkMax rightElevator =
       new CANSparkMax(CANMappings.ELEVATOR_RIGHT, MotorType.kBrushless);
 
-  private CANSparkFlex leftShooter =
-      new CANSparkFlex(CANMappings.SHOOTER_LEFT, MotorType.kBrushless);
-  private CANSparkFlex rightShooter =
-      new CANSparkFlex(CANMappings.SHOOTER_RIGHT, MotorType.kBrushless);
-
+  // private CANSparkFlex leftShooter =
+  //     new CANSparkFlex(CANMappings.SHOOTER_LEFT, MotorType.kBrushless);
+  // private CANSparkFlex rightShooter =
+  //     new CANSparkFlex(CANMappings.SHOOTER_RIGHT, MotorType.kBrushless);
+  //
   private CANSparkMax leftTilt = new CANSparkMax(CANMappings.TILT_LEFT, MotorType.kBrushless);
   private CANSparkMax rightTilt = new CANSparkMax(CANMappings.TILT_RIGHT, MotorType.kBrushless);
-
-  private CANSparkMax intermediate =
-      new CANSparkMax(CANMappings.INTERMEDIATE, MotorType.kBrushless);
-
+  //
+  // private CANSparkMax intermediate =
+  //     new CANSparkMax(CANMappings.INTERMEDIATE, MotorType.kBrushless);
+  //
   private AbsoluteEncoder tiltEncoder =
       leftTilt.getAbsoluteEncoder(SparkAbsoluteEncoder.Type.kDutyCycle);
 
   private RelativeEncoder heightEncoder = leftElevator.getEncoder();
 
-  private RelativeEncoder leftShooterEncoder = leftShooter.getEncoder();
-  private RelativeEncoder rightShooterEncoder = rightShooter.getEncoder();
+  // private RelativeEncoder leftShooterEncoder = leftShooter.getEncoder();
+  // private RelativeEncoder rightShooterEncoder = rightShooter.getEncoder();
 
   private Rotation2d targetAngle = Rotation2d.fromDegrees(0);
   private double angleStartTime = 0;
@@ -77,25 +75,25 @@ public class ShootSubsystem extends SubsystemBase {
     leftElevator.setIdleMode(HeightConstants.IDLE_MODE);
     rightElevator.setIdleMode(HeightConstants.IDLE_MODE);
 
-    leftShooter.setSmartCurrentLimit(ShooterMotorConstants.CURRENT_LIMIT);
-    rightShooter.setSmartCurrentLimit(ShooterMotorConstants.CURRENT_LIMIT);
-    leftShooter.setIdleMode(ShooterMotorConstants.IDLE_MODE);
-    rightShooter.setIdleMode(ShooterMotorConstants.IDLE_MODE);
+    // leftShooter.setSmartCurrentLimit(ShooterMotorConstants.CURRENT_LIMIT);
+    // rightShooter.setSmartCurrentLimit(ShooterMotorConstants.CURRENT_LIMIT);
+    // leftShooter.setIdleMode(ShooterMotorConstants.IDLE_MODE);
+    // rightShooter.setIdleMode(ShooterMotorConstants.IDLE_MODE);
 
-    intermediate.setIdleMode(IntermediateConstants.IDLE_MODE);
-    intermediate.setSmartCurrentLimit(IntermediateConstants.CURRENT_LIMIT);
+    // intermediate.setIdleMode(IntermediateConstants.IDLE_MODE);
+    // intermediate.setSmartCurrentLimit(IntermediateConstants.CURRENT_LIMIT);
 
-    leftShooter.setInverted(true);
-    leftShooterEncoder.setInverted(true);
+    // leftShooter.setInverted(true);
+    // leftShooterEncoder.setInverted(true);
 
-    leftShooterEncoder.setPositionConversionFactor(
-        ShooterMotorConstants.POSITION_CONVERSION_FACTOR);
-    leftShooterEncoder.setVelocityConversionFactor(
-        ShooterMotorConstants.VELOCITY_CONVERSION_FACTOR);
-    rightShooterEncoder.setPositionConversionFactor(
-        ShooterMotorConstants.POSITION_CONVERSION_FACTOR);
-    rightShooterEncoder.setVelocityConversionFactor(
-        ShooterMotorConstants.VELOCITY_CONVERSION_FACTOR);
+    // leftShooterEncoder.setPositionConversionFactor(
+    //     ShooterMotorConstants.POSITION_CONVERSION_FACTOR);
+    // leftShooterEncoder.setVelocityConversionFactor(
+    //     ShooterMotorConstants.VELOCITY_CONVERSION_FACTOR);
+    // rightShooterEncoder.setPositionConversionFactor(
+    //     ShooterMotorConstants.POSITION_CONVERSION_FACTOR);
+    // rightShooterEncoder.setVelocityConversionFactor(
+    //     ShooterMotorConstants.VELOCITY_CONVERSION_FACTOR);
 
     rightTilt.follow(leftTilt);
     rightElevator.follow(leftElevator);
@@ -135,6 +133,10 @@ public class ShootSubsystem extends SubsystemBase {
                 HeightConstants.MAX_VELOCITY, HeightConstants.MAX_ACCELERATION));
   }
 
+  public double getAngleRads() {
+    return this.tiltEncoder.getPosition();
+  }
+
   @Override
   public void periodic() {
     double currentPosition = heightEncoder.getPosition();
@@ -157,11 +159,12 @@ public class ShootSubsystem extends SubsystemBase {
             new TrapezoidProfile.State(currentAngle, tiltEncoder.getVelocity()),
             new TrapezoidProfile.State(targetAngle.getRadians(), 0));
 
-    double output = -tiltController.calculate(currentAngle, tiltDesiredState.position) // TODO: Make this work better
+    double output =
+        -tiltController.calculate(
+                currentAngle, tiltDesiredState.position) // TODO: Make this work better
             + armFeedforward.calculate(tiltDesiredState.position, tiltDesiredState.velocity);
 
-    leftTilt.setVoltage(output
-        );
+    leftTilt.setVoltage(output);
 
     SmartDashboard.putNumber("desired pos", tiltDesiredState.position);
     SmartDashboard.putNumber("desired vel", tiltDesiredState.velocity);
@@ -174,6 +177,16 @@ public class ShootSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("targetAngle", targetAngle.getRadians());
     SmartDashboard.putNumber("currentAngle", tiltEncoder.getPosition());
     SmartDashboard.putNumber("currentVelocity", tiltEncoder.getVelocity());
+  }
+
+  public void setHeightRaw(double height) {
+    this.targetHeight = height;
+    this.heightStartTime = Timer.getFPGATimestamp();
+  }
+
+  public void setAngleRaw(Rotation2d angle) {
+    this.targetAngle = angle;
+    this.angleStartTime = Timer.getFPGATimestamp();
   }
 
   private Command setVelocityOneSide(double velocity, CANSparkFlex motor, RelativeEncoder encoder) {
@@ -213,19 +226,19 @@ public class ShootSubsystem extends SubsystemBase {
    *
    * @param velocity The desired velocity of the note as it exits the schooter
    */
-  private Command shoot(double velocity) {
-    return Commands.race(
-        setVelocityOneSide(velocity, leftShooter, leftShooterEncoder),
-        setVelocityOneSide(velocity, rightShooter, rightShooterEncoder),
-        Commands.parallel(
-                waitForVelocityOneSide(velocity, leftShooterEncoder),
-                waitForVelocityOneSide(velocity, rightShooterEncoder))
-            .andThen(
-                Commands.runEnd(
-                        () -> intermediate.set(IntermediateConstants.SHOOT_SPEED),
-                        () -> intermediate.set(0))
-                    .withTimeout(IntermediateConstants.SHOOT_TIME)));
-  }
+  // private Command shoot(double velocity) {
+  //   return Commands.race(
+  //       setVelocityOneSide(velocity, leftShooter, leftShooterEncoder),
+  //       setVelocityOneSide(velocity, rightShooter, rightShooterEncoder),
+  //       Commands.parallel(
+  //               waitForVelocityOneSide(velocity, leftShooterEncoder),
+  //               waitForVelocityOneSide(velocity, rightShooterEncoder))
+  //           .andThen(
+  //               Commands.runEnd(
+  //                       () -> intermediate.set(IntermediateConstants.SHOOT_SPEED),
+  //                       () -> intermediate.set(0))
+  //                   .withTimeout(IntermediateConstants.SHOOT_TIME)));
+  // }
 
   /*
    * Sets the angle of the arm and waits until it is set. If the angle is set by

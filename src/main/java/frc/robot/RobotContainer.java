@@ -4,45 +4,82 @@
 
 package frc.robot;
 
-import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.constants.ControllerConstants;
-import frc.robot.subsystems.DriveSubsystem;
+import frc.robot.subsystems.ShootSubsystem;
 
 public class RobotContainer {
-  DriveSubsystem driveSubsystem = new DriveSubsystem();
+  // DriveSubsystem driveSubsystem = new DriveSubsystem();
+  ShootSubsystem shooter = new ShootSubsystem();
   CommandXboxController controller =
       new CommandXboxController(ControllerConstants.DRIVER_CONTROLLER_PORT);
 
+  double angle = 0.0;
+  double height = 0.0;
+
   public RobotContainer() {
     configureBindings();
-    driveSubsystem.register();
+    // driveSubsystem.register();
+    //
+    // driveSubsystem.setDefaultCommand(
+    //     Commands.run(
+    //         () -> {
+    //           driveSubsystem.drive(
+    //               -MathUtil.applyDeadband(
+    //                   controller.getLeftY(), ControllerConstants.DRIVE_DEADBAND),
+    //               -MathUtil.applyDeadband(
+    //                   controller.getLeftX(), ControllerConstants.DRIVE_DEADBAND),
+    //               -MathUtil.applyDeadband(
+    //                   controller.getRightX(), ControllerConstants.DRIVE_DEADBAND),
+    //               true,
+    //               true);
+    //         },
+    //         driveSubsystem)); // Maybe change this?
 
-    driveSubsystem.setDefaultCommand(
-        Commands.run(
-            () -> {
-              driveSubsystem.drive(
-                  -MathUtil.applyDeadband(
-                      controller.getLeftY(), ControllerConstants.DRIVE_DEADBAND),
-                  -MathUtil.applyDeadband(
-                      controller.getLeftX(), ControllerConstants.DRIVE_DEADBAND),
-                  -MathUtil.applyDeadband(
-                      controller.getRightX(), ControllerConstants.DRIVE_DEADBAND),
-                  true,
-                  true);
-            },
-            driveSubsystem)); // Maybe change this?
+    angle = shooter.getAngleRads();
   }
 
   private void configureBindings() {
     this.controller
-        .a()
-        .onTrue(Commands.runOnce(() -> this.driveSubsystem.zeroHeading(), this.driveSubsystem));
+        .y()
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  this.angle += 5 * Math.PI / 180;
+                  shooter.setAngleRaw(Rotation2d.fromRadians(angle));
+                }));
     this.controller
-        .rightBumper()
-        .whileTrue(Commands.run(() -> this.driveSubsystem.setX(), this.driveSubsystem));
+        .a()
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  this.angle -= 5 * Math.PI / 180;
+                  shooter.setAngleRaw(Rotation2d.fromRadians(angle));
+                }));
+
+    this.controller
+        .b()
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  this.height += 0.02;
+                  shooter.setHeightRaw(height);
+                }));
+    this.controller
+        .x()
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  this.height -= 0.02;
+                  shooter.setHeightRaw(height);
+                }));
+
+    // this.controller
+    //     .rightBumper()
+    //     .whileTrue(Commands.run(() -> this.driveSubsystem.setX(), this.driveSubsystem));
   }
 
   public Command getAutonomousCommand() {
