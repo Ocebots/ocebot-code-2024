@@ -42,8 +42,8 @@ public class ShooterConstants {
 
     public static double TOLERANCE = 0.03;
 
-    public static double POSITION_CONVERSION_FACTOR = 0;
-    public static double VELOCITY_CONVERSION_FACTOR = 0;
+    public static double POSITION_CONVERSION_FACTOR = 0.006;
+    public static double VELOCITY_CONVERSION_FACTOR = 0.0001;
 
     public static IdleMode IDLE_MODE = IdleMode.kBrake;
     public static int CURRENT_LIMIT = 50;
