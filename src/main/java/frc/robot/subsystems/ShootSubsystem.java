@@ -14,6 +14,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -42,9 +43,9 @@ public class ShootSubsystem extends SubsystemBase {
       new CANSparkMax(CANMappings.INTERMEDIATE, MotorType.kBrushless);
 
   private AbsoluteEncoder tiltEncoder =
-      rightTilt.getAbsoluteEncoder(SparkAbsoluteEncoder.Type.kDutyCycle);
+      leftTilt.getAbsoluteEncoder(SparkAbsoluteEncoder.Type.kDutyCycle);
 
-  private RelativeEncoder heightEncoder = rightElevator.getEncoder();
+  private RelativeEncoder heightEncoder = leftElevator.getEncoder();
 
   private RelativeEncoder leftShooterEncoder = leftShooter.getEncoder();
   private RelativeEncoder rightShooterEncoder = rightShooter.getEncoder();
@@ -54,6 +55,14 @@ public class ShootSubsystem extends SubsystemBase {
 
   private double targetHeight = 0;
   private double heightStartTime = 0;
+
+  TrapezoidProfile heightProfile;
+  ElevatorFeedforward elevatorFeedforward;
+  PIDController heightController;
+
+  ArmFeedforward armFeedforward;
+  PIDController tiltController;
+  TrapezoidProfile tiltProfile;
 
   public ShootSubsystem() {
     super();
@@ -88,8 +97,8 @@ public class ShootSubsystem extends SubsystemBase {
     rightShooterEncoder.setVelocityConversionFactor(
         ShooterMotorConstants.VELOCITY_CONVERSION_FACTOR);
 
-    leftTilt.follow(rightTilt, true);
-    leftElevator.follow(rightElevator);
+    rightTilt.follow(leftTilt);
+    rightElevator.follow(leftElevator);
 
     tiltEncoder.setPositionConversionFactor(TiltConstants.POSITION_CONVERSION_FACTOR);
     tiltEncoder.setVelocityConversionFactor(TiltConstants.VELOCITY_CONVERSION_FACTOR);
@@ -99,67 +108,72 @@ public class ShootSubsystem extends SubsystemBase {
 
     targetAngle = Rotation2d.fromRadians(tiltEncoder.getPosition());
 
-    ArmFeedforward armFeedforward =
+    armFeedforward =
         new ArmFeedforward(
             TiltConstants.STATIC_GAIN, TiltConstants.GRAVITY_GAIN, TiltConstants.VELOCITY_GAIN);
 
-    PIDController tiltController =
+    tiltController =
         new PIDController(TiltConstants.P_GAIN, TiltConstants.I_GAIN, TiltConstants.D_GAIN);
 
-    TrapezoidProfile tiltProfile =
+    tiltProfile =
         new TrapezoidProfile(
             new TrapezoidProfile.Constraints(
                 TiltConstants.MAX_ANGULAR_VELOCITY, TiltConstants.MAX_ANGULAR_ACCELERATION));
 
-    Command tiltCommand =
-        Commands.run(
-            () -> {
-              double currentAngle = tiltEncoder.getPosition();
-
-              TrapezoidProfile.State desiredState =
-                  tiltProfile.calculate(
-                      Timer.getFPGATimestamp() - angleStartTime,
-                      new TrapezoidProfile.State(currentAngle, tiltEncoder.getVelocity()),
-                      new TrapezoidProfile.State(targetAngle.getRadians(), 0));
-
-              rightTilt.setVoltage(
-                  tiltController.calculate(currentAngle, desiredState.position)
-                      + armFeedforward.calculate(desiredState.position, desiredState.velocity));
-            });
-
-    ElevatorFeedforward elevatorFeedforward =
+    elevatorFeedforward =
         new ElevatorFeedforward(
             HeightConstants.STATIC_GAIN,
             HeightConstants.GRAVITY_GAIN,
             HeightConstants.VELOCITY_GAIN);
 
-    PIDController heightController =
+    heightController =
         new PIDController(HeightConstants.P_GAIN, HeightConstants.I_GAIN, HeightConstants.D_GAIN);
 
-    TrapezoidProfile heightProfile =
+    heightProfile =
         new TrapezoidProfile(
             new TrapezoidProfile.Constraints(
                 HeightConstants.MAX_VELOCITY, HeightConstants.MAX_ACCELERATION));
+  }
 
-    Command heightCommand =
-        Commands.run(
-            () -> {
-              double currentPosition = heightEncoder.getPosition();
+  @Override
+  public void periodic() {
+    double currentPosition = heightEncoder.getPosition();
 
-              TrapezoidProfile.State desiredState =
-                  heightProfile.calculate(
-                      Timer.getFPGATimestamp() - heightStartTime,
-                      new TrapezoidProfile.State(currentPosition, heightEncoder.getVelocity()),
-                      new TrapezoidProfile.State(targetHeight, 0));
+    TrapezoidProfile.State heightDesiredState =
+        heightProfile.calculate(
+            Timer.getFPGATimestamp() - heightStartTime,
+            new TrapezoidProfile.State(currentPosition, heightEncoder.getVelocity()),
+            new TrapezoidProfile.State(targetHeight, 0));
 
-              rightElevator.setVoltage(
-                  heightController.calculate(currentPosition, desiredState.position)
-                      + elevatorFeedforward.calculate(desiredState.velocity));
-            });
+    leftElevator.setVoltage(
+        heightController.calculate(currentPosition, heightDesiredState.position)
+            + elevatorFeedforward.calculate(heightDesiredState.velocity));
 
-    CommandScheduler.getInstance().schedule(tiltCommand, heightCommand);
+    double currentAngle = tiltEncoder.getPosition();
 
-    this.setDefaultCommand(this.underStageMode().repeatedly());
+    TrapezoidProfile.State tiltDesiredState =
+        tiltProfile.calculate(
+            Timer.getFPGATimestamp() - angleStartTime,
+            new TrapezoidProfile.State(currentAngle, tiltEncoder.getVelocity()),
+            new TrapezoidProfile.State(targetAngle.getRadians(), 0));
+
+    double output = -tiltController.calculate(currentAngle, tiltDesiredState.position) // TODO: Make this work better
+            + armFeedforward.calculate(tiltDesiredState.position, tiltDesiredState.velocity);
+
+    leftTilt.setVoltage(output
+        );
+
+    SmartDashboard.putNumber("desired pos", tiltDesiredState.position);
+    SmartDashboard.putNumber("desired vel", tiltDesiredState.velocity);
+    SmartDashboard.putNumber("elapsed", Timer.getFPGATimestamp() - angleStartTime);
+
+    logInfo();
+  }
+
+  public void logInfo() {
+    SmartDashboard.putNumber("targetAngle", targetAngle.getRadians());
+    SmartDashboard.putNumber("currentAngle", tiltEncoder.getPosition());
+    SmartDashboard.putNumber("currentVelocity", tiltEncoder.getVelocity());
   }
 
   private Command setVelocityOneSide(double velocity, CANSparkFlex motor, RelativeEncoder encoder) {
