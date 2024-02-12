@@ -103,6 +103,8 @@ public class ShootSubsystem extends SubsystemBase {
     tiltEncoder.setPositionConversionFactor(TiltConstants.POSITION_CONVERSION_FACTOR);
     tiltEncoder.setVelocityConversionFactor(TiltConstants.VELOCITY_CONVERSION_FACTOR);
 
+    tiltEncoder.setInverted(false);
+
     heightEncoder.setPositionConversionFactor(HeightConstants.POSITION_CONVERSION_FACTOR);
     heightEncoder.setVelocityConversionFactor(HeightConstants.VELOCITY_CONVERSION_FACTOR);
 
