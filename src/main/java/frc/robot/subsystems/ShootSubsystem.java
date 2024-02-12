@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.AbsoluteEncoder;
+import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkFlex;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
@@ -19,7 +20,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.constants.CANMappings;
+import frc.constants.ShooterConstants;
 import frc.constants.ShooterConstants.HeightConstants;
+import frc.constants.ShooterConstants.IntermediateConstants;
 import frc.constants.ShooterConstants.ShooterMotorConstants;
 import frc.constants.ShooterConstants.TiltConstants;
 
@@ -29,24 +32,26 @@ public class ShootSubsystem extends SubsystemBase {
   private CANSparkMax rightElevator =
       new CANSparkMax(CANMappings.ELEVATOR_RIGHT, MotorType.kBrushless);
 
-  // private CANSparkFlex leftShooter =
-  //     new CANSparkFlex(CANMappings.SHOOTER_LEFT, MotorType.kBrushless);
-  // private CANSparkFlex rightShooter =
-  //     new CANSparkFlex(CANMappings.SHOOTER_RIGHT, MotorType.kBrushless);
-  //
+  private CANSparkFlex leftShooter =
+      new CANSparkFlex(CANMappings.SHOOTER_LEFT, MotorType.kBrushless);
+  private CANSparkFlex rightShooter =
+      new CANSparkFlex(CANMappings.SHOOTER_RIGHT, MotorType.kBrushless);
+
   private CANSparkMax leftTilt = new CANSparkMax(CANMappings.TILT_LEFT, MotorType.kBrushless);
   private CANSparkMax rightTilt = new CANSparkMax(CANMappings.TILT_RIGHT, MotorType.kBrushless);
-  //
-  // private CANSparkMax intermediate =
-  //     new CANSparkMax(CANMappings.INTERMEDIATE, MotorType.kBrushless);
-  //
+
+  private CANSparkMax intermediate =
+      new CANSparkMax(CANMappings.INTERMEDIATE, MotorType.kBrushless);
+
   private AbsoluteEncoder tiltEncoder =
       leftTilt.getAbsoluteEncoder(SparkAbsoluteEncoder.Type.kDutyCycle);
 
   private RelativeEncoder heightEncoder = leftElevator.getEncoder();
 
-  // private RelativeEncoder leftShooterEncoder = leftShooter.getEncoder();
-  // private RelativeEncoder rightShooterEncoder = rightShooter.getEncoder();
+  private RelativeEncoder leftShooterEncoder = leftShooter.getEncoder();
+  private RelativeEncoder rightShooterEncoder = rightShooter.getEncoder();
+
+  private RelativeEncoder intermediateEncoder = intermediate.getEncoder();
 
   private Rotation2d targetAngle = Rotation2d.fromDegrees(0);
   private double angleStartTime = 0;
@@ -75,31 +80,38 @@ public class ShootSubsystem extends SubsystemBase {
     leftElevator.setIdleMode(HeightConstants.IDLE_MODE);
     rightElevator.setIdleMode(HeightConstants.IDLE_MODE);
 
-    // leftShooter.setSmartCurrentLimit(ShooterMotorConstants.CURRENT_LIMIT);
-    // rightShooter.setSmartCurrentLimit(ShooterMotorConstants.CURRENT_LIMIT);
-    // leftShooter.setIdleMode(ShooterMotorConstants.IDLE_MODE);
-    // rightShooter.setIdleMode(ShooterMotorConstants.IDLE_MODE);
+    leftShooter.setSmartCurrentLimit(ShooterMotorConstants.CURRENT_LIMIT);
+    rightShooter.setSmartCurrentLimit(ShooterMotorConstants.CURRENT_LIMIT);
+    leftShooter.setIdleMode(ShooterMotorConstants.IDLE_MODE);
+    rightShooter.setIdleMode(ShooterMotorConstants.IDLE_MODE);
 
-    // intermediate.setIdleMode(IntermediateConstants.IDLE_MODE);
-    // intermediate.setSmartCurrentLimit(IntermediateConstants.CURRENT_LIMIT);
+    intermediate.setIdleMode(IntermediateConstants.IDLE_MODE);
+    intermediate.setSmartCurrentLimit(IntermediateConstants.CURRENT_LIMIT);
 
-    // leftShooter.setInverted(true);
-    // leftShooterEncoder.setInverted(true);
+    intermediateEncoder.setPositionConversionFactor(
+        IntermediateConstants.POSITION_CONVERSION_FACTOR);
+    intermediateEncoder.setVelocityConversionFactor(
+        IntermediateConstants.VELOCITY_CONVERSION_FACTOR);
 
-    // leftShooterEncoder.setPositionConversionFactor(
-    //     ShooterMotorConstants.POSITION_CONVERSION_FACTOR);
-    // leftShooterEncoder.setVelocityConversionFactor(
-    //     ShooterMotorConstants.VELOCITY_CONVERSION_FACTOR);
-    // rightShooterEncoder.setPositionConversionFactor(
-    //     ShooterMotorConstants.POSITION_CONVERSION_FACTOR);
-    // rightShooterEncoder.setVelocityConversionFactor(
-    //     ShooterMotorConstants.VELOCITY_CONVERSION_FACTOR);
+    leftShooter.setInverted(true);
+    leftShooterEncoder.setInverted(true);
+
+    leftShooterEncoder.setPositionConversionFactor(
+        ShooterMotorConstants.POSITION_CONVERSION_FACTOR);
+    leftShooterEncoder.setVelocityConversionFactor(
+        ShooterMotorConstants.VELOCITY_CONVERSION_FACTOR);
+    rightShooterEncoder.setPositionConversionFactor(
+        ShooterMotorConstants.POSITION_CONVERSION_FACTOR);
+    rightShooterEncoder.setVelocityConversionFactor(
+        ShooterMotorConstants.VELOCITY_CONVERSION_FACTOR);
 
     rightTilt.follow(leftTilt);
     rightElevator.follow(leftElevator);
 
     tiltEncoder.setPositionConversionFactor(TiltConstants.POSITION_CONVERSION_FACTOR);
     tiltEncoder.setVelocityConversionFactor(TiltConstants.VELOCITY_CONVERSION_FACTOR);
+
+    tiltEncoder.setInverted(false);
 
     heightEncoder.setPositionConversionFactor(HeightConstants.POSITION_CONVERSION_FACTOR);
     heightEncoder.setVelocityConversionFactor(HeightConstants.VELOCITY_CONVERSION_FACTOR);
@@ -160,8 +172,7 @@ public class ShootSubsystem extends SubsystemBase {
             new TrapezoidProfile.State(targetAngle.getRadians(), 0));
 
     double output =
-        -tiltController.calculate(
-                currentAngle, tiltDesiredState.position) // TODO: Make this work better
+        tiltController.calculate(currentAngle, tiltDesiredState.position)
             + armFeedforward.calculate(tiltDesiredState.position, tiltDesiredState.velocity);
 
     leftTilt.setVoltage(output);
@@ -226,19 +237,19 @@ public class ShootSubsystem extends SubsystemBase {
    *
    * @param velocity The desired velocity of the note as it exits the schooter
    */
-  // private Command shoot(double velocity) {
-  //   return Commands.race(
-  //       setVelocityOneSide(velocity, leftShooter, leftShooterEncoder),
-  //       setVelocityOneSide(velocity, rightShooter, rightShooterEncoder),
-  //       Commands.parallel(
-  //               waitForVelocityOneSide(velocity, leftShooterEncoder),
-  //               waitForVelocityOneSide(velocity, rightShooterEncoder))
-  //           .andThen(
-  //               Commands.runEnd(
-  //                       () -> intermediate.set(IntermediateConstants.SHOOT_SPEED),
-  //                       () -> intermediate.set(0))
-  //                   .withTimeout(IntermediateConstants.SHOOT_TIME)));
-  // }
+  private Command shoot(double velocity) {
+    return Commands.race(
+        setVelocityOneSide(velocity, leftShooter, leftShooterEncoder),
+        setVelocityOneSide(velocity, rightShooter, rightShooterEncoder),
+        Commands.parallel(
+                waitForVelocityOneSide(velocity, leftShooterEncoder),
+                waitForVelocityOneSide(velocity, rightShooterEncoder))
+            .andThen(
+                Commands.runEnd(
+                        () -> intermediate.set(IntermediateConstants.SHOOT_SPEED),
+                        () -> intermediate.set(0))
+                    .withTimeout(IntermediateConstants.SHOOT_TIME)));
+  }
 
   /*
    * Sets the angle of the arm and waits until it is set. If the angle is set by
@@ -290,12 +301,68 @@ public class ShootSubsystem extends SubsystemBase {
                 }));
   }
 
-  private Command setHeightAndTilt(double height, Rotation2d angle) {
-    return Commands.parallel(setHeight(height), setAngle(angle), Commands.run(() -> {}, this));
+  public Command intakeMode() {
+    return setHeightAndTilt(ShooterConstants.INTAKE_HEIGHT, ShooterConstants.INTAKE_ANGLE)
+        .andThen(
+            Commands.runOnce(
+                () -> {
+                  intermediateEncoder.setPosition(0);
+                  intermediate.setIdleMode(IdleMode.kCoast);
+                }));
   }
 
-  public Command underStageMode() {
-    return null; // TODO: Set the angle and height to be able to go under the stage
+  public Command waitForIntake() {
+    return Commands.waitUntil(
+        () -> Math.abs(intermediateEncoder.getPosition()) > IntermediateConstants.TOLERANCE);
+  }
+
+  public Command completeIntake() {
+    PIDController controller =
+        new PIDController(
+            IntermediateConstants.P_GAIN,
+            IntermediateConstants.I_GAIN,
+            IntermediateConstants.D_GAIN);
+    SimpleMotorFeedforward feedforward =
+        new SimpleMotorFeedforward(
+            IntermediateConstants.STATIC_GAIN, IntermediateConstants.VELOCITY_GAIN);
+    TrapezoidProfile profile =
+        new TrapezoidProfile(
+            new TrapezoidProfile.Constraints(
+                IntermediateConstants.MAX_VELOCITY, IntermediateConstants.MAX_ACCELERATION));
+
+    Timer timer = new Timer();
+    timer.start();
+
+    return Commands.runEnd(
+            () -> {
+              double currentPosititon = intermediateEncoder.getPosition();
+              TrapezoidProfile.State desiredState =
+                  profile.calculate(
+                      timer.get(),
+                      new TrapezoidProfile.State(
+                          currentPosititon, intermediateEncoder.getVelocity()),
+                      new TrapezoidProfile.State(IntermediateConstants.FINAL_OFFSET, 0));
+
+              intermediate.setVoltage(
+                  controller.calculate(currentPosititon, desiredState.position)
+                      + feedforward.calculate(desiredState.velocity));
+            },
+            () -> intermediate.set(0),
+            this)
+        .until(
+            () -> {
+              double currentPosition = intermediateEncoder.getPosition();
+
+              return currentPosition
+                      >= IntermediateConstants.FINAL_OFFSET - IntermediateConstants.TOLERANCE
+                  && currentPosition
+                      <= IntermediateConstants.FINAL_OFFSET + IntermediateConstants.TOLERANCE;
+            });
+  }
+
+  private Command setHeightAndTilt(double height, Rotation2d angle) {
+    return Commands.parallel(setHeight(height), setAngle(angle))
+        .raceWith(Commands.run(() -> {}, this));
   }
 
   public Command scoreAmp() {
