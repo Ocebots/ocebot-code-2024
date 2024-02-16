@@ -93,8 +93,8 @@ public class ShootSubsystem extends SubsystemBase {
     intermediateEncoder.setVelocityConversionFactor(
         IntermediateConstants.VELOCITY_CONVERSION_FACTOR);
 
-    leftShooter.setInverted(true);
-    leftShooterEncoder.setInverted(true);
+    leftShooter.setInverted(false);
+    rightShooter.setInverted(true);
 
     leftShooterEncoder.setPositionConversionFactor(
         ShooterMotorConstants.POSITION_CONVERSION_FACTOR);
@@ -117,6 +117,7 @@ public class ShootSubsystem extends SubsystemBase {
     heightEncoder.setVelocityConversionFactor(HeightConstants.VELOCITY_CONVERSION_FACTOR);
 
     targetAngle = Rotation2d.fromRadians(tiltEncoder.getPosition());
+    targetHeight = heightEncoder.getPosition();
 
     armFeedforward =
         new ArmFeedforward(
@@ -149,6 +150,10 @@ public class ShootSubsystem extends SubsystemBase {
     return this.tiltEncoder.getPosition();
   }
 
+  public double getHeight() {
+    return this.heightEncoder.getPosition();
+  }
+
   @Override
   public void periodic() {
     double currentPosition = heightEncoder.getPosition();
@@ -171,23 +176,19 @@ public class ShootSubsystem extends SubsystemBase {
             new TrapezoidProfile.State(currentAngle, tiltEncoder.getVelocity()),
             new TrapezoidProfile.State(targetAngle.getRadians(), 0));
 
-    double output =
+    leftTilt.setVoltage(
         tiltController.calculate(currentAngle, tiltDesiredState.position)
-            + armFeedforward.calculate(tiltDesiredState.position, tiltDesiredState.velocity);
-
-    leftTilt.setVoltage(output);
-
-    SmartDashboard.putNumber("desired pos", tiltDesiredState.position);
-    SmartDashboard.putNumber("desired vel", tiltDesiredState.velocity);
-    SmartDashboard.putNumber("elapsed", Timer.getFPGATimestamp() - angleStartTime);
+            + armFeedforward.calculate(tiltDesiredState.position, tiltDesiredState.velocity));
 
     logInfo();
   }
 
   public void logInfo() {
-    SmartDashboard.putNumber("targetAngle", targetAngle.getRadians());
+    SmartDashboard.putNumber("leftVel", leftShooterEncoder.getVelocity());
+    SmartDashboard.putNumber("rightVel", rightShooterEncoder.getVelocity());
+
     SmartDashboard.putNumber("currentAngle", tiltEncoder.getPosition());
-    SmartDashboard.putNumber("currentVelocity", tiltEncoder.getVelocity());
+    SmartDashboard.putNumber("targetAngle", targetAngle.getRadians());
   }
 
   public void setHeightRaw(double height) {
@@ -218,15 +219,17 @@ public class ShootSubsystem extends SubsystemBase {
           motor.setVoltage(
               pidController.calculate(encoder.getVelocity()) + feedforward.calculate(velocity));
         },
-        () -> motor.set(0));
+        () -> {
+          motor.set(0);
+          pidController.close();
+        });
   }
 
   private Command waitForVelocityOneSide(double velocity, RelativeEncoder encoder) {
     return Commands.waitUntil(
         () -> {
           double currentVelocity = encoder.getVelocity();
-          return currentVelocity >= velocity - ShooterMotorConstants.TOLERANCE
-              && currentVelocity <= velocity + ShooterMotorConstants.TOLERANCE;
+          return currentVelocity > velocity;
         });
   }
 
@@ -237,7 +240,7 @@ public class ShootSubsystem extends SubsystemBase {
    *
    * @param velocity The desired velocity of the note as it exits the schooter
    */
-  private Command shoot(double velocity) {
+  public Command shoot(double velocity) {
     return Commands.race(
         setVelocityOneSide(velocity, leftShooter, leftShooterEncoder),
         setVelocityOneSide(velocity, rightShooter, rightShooterEncoder),
@@ -347,7 +350,10 @@ public class ShootSubsystem extends SubsystemBase {
                   controller.calculate(currentPosititon, desiredState.position)
                       + feedforward.calculate(desiredState.velocity));
             },
-            () -> intermediate.set(0),
+            () -> {
+              intermediate.set(0);
+              controller.close();
+            },
             this)
         .until(
             () -> {

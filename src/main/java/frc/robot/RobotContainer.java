@@ -40,6 +40,7 @@ public class RobotContainer {
     //         driveSubsystem)); // Maybe change this?
 
     angle = shooter.getAngleRads();
+    height = shooter.getHeight();
   }
 
   private void configureBindings() {
@@ -76,6 +77,8 @@ public class RobotContainer {
                   this.height -= 0.02;
                   shooter.setHeightRaw(height);
                 }));
+
+    this.controller.rightBumper().onTrue(shooter.shoot(15));
 
     // this.controller
     //     .rightBumper()

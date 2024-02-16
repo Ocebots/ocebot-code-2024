@@ -24,7 +24,7 @@ public class ShooterConstants {
     public static double POSITION_CONVERSION_FACTOR = 2 * Math.PI;
     public static double VELOCITY_CONVERSION_FACTOR = 2 * Math.PI / 60;
 
-    public static IdleMode IDLE_MODE = IdleMode.kCoast;
+    public static IdleMode IDLE_MODE = IdleMode.kBrake;
     public static int CURRENT_LIMIT = 50;
   }
 
@@ -63,14 +63,14 @@ public class ShooterConstants {
     public static double D_GAIN = 0;
 
     public static double STATIC_GAIN = 0;
-    public static double VELOCITY_GAIN = 0;
+    public static double VELOCITY_GAIN = 0.6;
   }
 
   public static class IntermediateConstants {
     public static int CURRENT_LIMIT = 20;
     public static IdleMode IDLE_MODE = IdleMode.kBrake;
 
-    public static double SHOOT_SPEED = 0.5;
+    public static double SHOOT_SPEED = -1;
     public static double SHOOT_TIME = 1;
 
     public static double P_GAIN = 0;
@@ -79,8 +79,8 @@ public class ShooterConstants {
 
     public static double TOLERANCE = 0.5;
 
-    public static double POSITION_CONVERSION_FACTOR = 0;
-    public static double VELOCITY_CONVERSION_FACTOR = 0;
+    public static double POSITION_CONVERSION_FACTOR = 1 / 5 * Math.PI * 0.0508;
+    public static double VELOCITY_CONVERSION_FACTOR = POSITION_CONVERSION_FACTOR / 60;
 
     public static double STATIC_GAIN = 0;
     public static double VELOCITY_GAIN = 0;
