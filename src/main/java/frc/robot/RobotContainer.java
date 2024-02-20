@@ -5,11 +5,15 @@
 package frc.robot;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.constants.ControllerConstants;
 import frc.robot.subsystems.ShootSubsystem;
+import java.util.HashSet;
+import java.util.Set;
 
 public class RobotContainer {
   // DriveSubsystem driveSubsystem = new DriveSubsystem();
@@ -22,8 +26,7 @@ public class RobotContainer {
 
   public RobotContainer() {
     configureBindings();
-    // driveSubsystem.register();
-    //
+
     // driveSubsystem.setDefaultCommand(
     //     Commands.run(
     //         () -> {
@@ -41,6 +44,10 @@ public class RobotContainer {
 
     angle = shooter.getAngleRads();
     height = shooter.getHeight();
+  }
+
+  public void periodic() {
+    SmartDashboard.putNumber("angle", angle);
   }
 
   private void configureBindings() {
@@ -78,7 +85,23 @@ public class RobotContainer {
                   shooter.setHeightRaw(height);
                 }));
 
-    this.controller.rightBumper().onTrue(shooter.shoot(15));
+    SmartDashboard.putNumber("speed", 20);
+
+    Set<Subsystem> reqs = new HashSet<>();
+
+    reqs.add(shooter);
+
+    this.controller
+        .rightBumper()
+        .onTrue(Commands.defer(() -> shooter.shoot(SmartDashboard.getNumber("speed", 20)), reqs));
+
+    this.controller
+        .leftBumper()
+        .onTrue(
+            shooter
+                .intakeMode()
+                .andThen(shooter.waitForIntake())
+                .andThen(shooter.completeIntake()));
 
     // this.controller
     //     .rightBumper()
