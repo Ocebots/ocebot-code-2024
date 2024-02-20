@@ -51,7 +51,7 @@ public class ShooterConstants {
 
   public static class ShooterMotorConstants {
     public static int CURRENT_LIMIT = 50;
-    public static IdleMode IDLE_MODE = IdleMode.kBrake;
+    public static IdleMode IDLE_MODE = IdleMode.kCoast;
 
     public static double TOLERANCE = 0.5;
 
