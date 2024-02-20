@@ -14,13 +14,13 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.constants.CANMappings;
-import frc.constants.ShooterConstants;
 import frc.constants.ShooterConstants.HeightConstants;
 import frc.constants.ShooterConstants.IntermediateConstants;
 import frc.constants.ShooterConstants.ShooterMotorConstants;
@@ -52,6 +52,8 @@ public class ShootSubsystem extends SubsystemBase {
   private RelativeEncoder rightShooterEncoder = rightShooter.getEncoder();
 
   private RelativeEncoder intermediateEncoder = intermediate.getEncoder();
+
+  private DigitalInput limitSwitch = new DigitalInput(0);
 
   private Rotation2d targetAngle = Rotation2d.fromDegrees(0);
   private double angleStartTime = 0;
@@ -88,10 +90,14 @@ public class ShootSubsystem extends SubsystemBase {
     intermediate.setIdleMode(IntermediateConstants.IDLE_MODE);
     intermediate.setSmartCurrentLimit(IntermediateConstants.CURRENT_LIMIT);
 
+    intermediate.setInverted(true);
+
     intermediateEncoder.setPositionConversionFactor(
         IntermediateConstants.POSITION_CONVERSION_FACTOR);
     intermediateEncoder.setVelocityConversionFactor(
         IntermediateConstants.VELOCITY_CONVERSION_FACTOR);
+
+    intermediateEncoder.setPosition(0.0);
 
     leftShooter.setInverted(false);
     rightShooter.setInverted(true);
@@ -184,11 +190,14 @@ public class ShootSubsystem extends SubsystemBase {
   }
 
   public void logInfo() {
-    SmartDashboard.putNumber("leftVel", leftShooterEncoder.getVelocity());
-    SmartDashboard.putNumber("rightVel", rightShooterEncoder.getVelocity());
+    SmartDashboard.putNumber("shooter/velocity/left", leftShooterEncoder.getVelocity());
+    SmartDashboard.putNumber("shooter/velocity/right", rightShooterEncoder.getVelocity());
 
-    SmartDashboard.putNumber("currentAngle", tiltEncoder.getPosition());
-    SmartDashboard.putNumber("targetAngle", targetAngle.getRadians());
+    SmartDashboard.putNumber("shooter/angle/current", tiltEncoder.getPosition());
+    SmartDashboard.putNumber("shooter/angle/target", targetAngle.getRadians());
+    SmartDashboard.putNumber("shooter/height/current", heightEncoder.getPosition());
+
+    SmartDashboard.putNumber("shooter/inter/current", intermediateEncoder.getPosition());
   }
 
   public void setHeightRaw(double height) {
@@ -241,6 +250,7 @@ public class ShootSubsystem extends SubsystemBase {
    * @param velocity The desired velocity of the note as it exits the schooter
    */
   public Command shoot(double velocity) {
+    SmartDashboard.putNumber("shooter/velocity/desired", velocity);
     return Commands.race(
         setVelocityOneSide(velocity, leftShooter, leftShooterEncoder),
         setVelocityOneSide(velocity, rightShooter, rightShooterEncoder),
@@ -250,7 +260,10 @@ public class ShootSubsystem extends SubsystemBase {
             .andThen(
                 Commands.runEnd(
                         () -> intermediate.set(IntermediateConstants.SHOOT_SPEED),
-                        () -> intermediate.set(0))
+                        () -> {
+                          intermediate.set(0);
+                          SmartDashboard.putBoolean("shooter/hasNote", false);
+                        })
                     .withTimeout(IntermediateConstants.SHOOT_TIME)));
   }
 
@@ -305,18 +318,22 @@ public class ShootSubsystem extends SubsystemBase {
   }
 
   public Command intakeMode() {
-    return setHeightAndTilt(ShooterConstants.INTAKE_HEIGHT, ShooterConstants.INTAKE_ANGLE)
-        .andThen(
-            Commands.runOnce(
-                () -> {
-                  intermediateEncoder.setPosition(0);
-                  intermediate.setIdleMode(IdleMode.kCoast);
-                }));
+    // return setHeightAndTilt(ShooterConstants.INTAKE_HEIGHT, ShooterConstants.INTAKE_ANGLE)
+    //     .andThen(
+    //         Commands.runOnce(
+    //             () -> {
+    //               intermediateEncoder.setPosition(0);
+    //               intermediate.setIdleMode(IdleMode.kCoast);
+    //             }));
+    return Commands.runOnce(
+        () -> {
+          intermediateEncoder.setPosition(0);
+          intermediate.setIdleMode(IdleMode.kCoast);
+        });
   }
 
   public Command waitForIntake() {
-    return Commands.waitUntil(
-        () -> Math.abs(intermediateEncoder.getPosition()) > IntermediateConstants.TOLERANCE);
+    return Commands.waitUntil(() -> limitSwitch.get());
   }
 
   public Command completeIntake() {
@@ -353,6 +370,7 @@ public class ShootSubsystem extends SubsystemBase {
             () -> {
               intermediate.set(0);
               controller.close();
+              SmartDashboard.putBoolean("shooter/hasNote", true);
             },
             this)
         .until(
