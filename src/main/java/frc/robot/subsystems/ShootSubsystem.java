@@ -53,7 +53,7 @@ public class ShootSubsystem extends SubsystemBase {
 
   private RelativeEncoder intermediateEncoder = intermediate.getEncoder();
 
-  private Rotation2d targetAngle = Rotation2d.fromDegrees(0);
+  private Rotation2d targetAngle;
   private double angleStartTime = 0;
 
   private double targetHeight = 0;
@@ -298,7 +298,7 @@ public class ShootSubsystem extends SubsystemBase {
         () -> Math.abs(intermediateEncoder.getPosition()) > IntermediateConstants.TOLERANCE);
   }
 
-  /** Move the note into the correct positioon within the robot */
+  /** Move the note into the correct position within the robot */
   public Command completeIntake() {
     PIDController controller =
         new PIDController(
