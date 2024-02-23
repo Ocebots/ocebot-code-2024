@@ -49,9 +49,9 @@ public class ShooterConstants {
     public static final int CURRENT_LIMIT = 50;
   }
 
-  public static final class ShooterMotorConstants {
-    public static final int CURRENT_LIMIT = 50;
-    public static final IdleMode IDLE_MODE = IdleMode.kBrake;
+  public static class ShooterMotorConstants {
+    public static int CURRENT_LIMIT = 50;
+    public static IdleMode IDLE_MODE = IdleMode.kCoast;
 
     public static final double TOLERANCE = 0.5;
 
@@ -90,4 +90,8 @@ public class ShooterConstants {
 
     public static final double FINAL_OFFSET = 0.15;
   }
+
+  public static final Rotation2d AMP_ANGLE = Rotation2d.fromDegrees(0.0);
+  public static final double AMP_HEIGHT = 0.0;
+  public static final double AMP_SPEED = 0.0;
 }

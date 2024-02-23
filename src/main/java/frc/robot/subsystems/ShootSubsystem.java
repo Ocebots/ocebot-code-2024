@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.constants.CANMappings;
+import frc.constants.ShooterConstants;
 import frc.constants.ShooterConstants.HeightConstants;
 import frc.constants.ShooterConstants.IntermediateConstants;
 import frc.constants.ShooterConstants.ShooterMotorConstants;
@@ -210,6 +211,13 @@ public class ShootSubsystem extends SubsystemBase {
     this.angleStartTime = Timer.getFPGATimestamp();
   }
 
+  /**
+   * Control the velocity of one motor
+   *
+   * @param velocity The desired velocity in m/s
+   * @param motor The motor to control
+   * @param encoder The encoder to use to measure velocity
+   */
   private Command setVelocityOneSide(double velocity, CANSparkFlex motor, RelativeEncoder encoder) {
     PIDController pidController =
         new PIDController(
@@ -234,6 +242,7 @@ public class ShootSubsystem extends SubsystemBase {
         });
   }
 
+  /** Wait until a motor hits */
   private Command waitForVelocityOneSide(double velocity, RelativeEncoder encoder) {
     return Commands.waitUntil(
         () -> {
@@ -242,10 +251,9 @@ public class ShootSubsystem extends SubsystemBase {
         });
   }
 
-  /*
-   * Sets the velocity of each wheel and waits for it to reach it. Then run the
-   * shoot speed for a set amount of time. This does not rely on this subsystem
-   * because it is internal.
+  /**
+   * Sets the velocity of each wheel and waits for it to reach it. Then run the shoot speed for a
+   * set amount of time. This does not rely on this subsystem because it is internal.
    *
    * @param velocity The desired velocity of the note as it exits the schooter
    */
@@ -264,14 +272,15 @@ public class ShootSubsystem extends SubsystemBase {
                           intermediate.set(0);
                           SmartDashboard.putBoolean("shooter/hasNote", false);
                         })
-                    .withTimeout(IntermediateConstants.SHOOT_TIME)));
+                    .withTimeout(IntermediateConstants.SHOOT_TIME)),
+        Commands.run(() -> {}, this));
   }
 
-  /*
-   * Sets the angle of the arm and waits until it is set. If the angle is set by
-   * another command before it is finished, the command will complete when the new
-   * target is reached. This command does not rely on this subsystem because it is
-   * internal. Zero is horizontal forward and 90 degrees is up.
+  /**
+   * Sets the angle of the arm and waits until it is set. If the angle is set by another command
+   * before it is finished, the command will complete when the new target is reached. This command
+   * does not rely on this subsystem because it is internal. Zero is horizontal forward and 90
+   * degrees is up.
    *
    * @param newAngle The abosolute angle of the arm
    */
@@ -293,11 +302,10 @@ public class ShootSubsystem extends SubsystemBase {
                 }));
   }
 
-  /*
-   * Sets the height of the arm and waits until it is set. If the height is set by
-   * another command before it is finished, the command will complete when the new
-   * target is reached. This command does not rely on this subsystem because it is
-   * internal
+  /**
+   * Sets the height of the arm and waits until it is set. If the height is set by another command
+   * before it is finished, the command will complete when the new target is reached. This command
+   * does not rely on this subsystem because it is internal
    *
    * @param meters The abosolute height in meters of the arm
    */
@@ -317,25 +325,24 @@ public class ShootSubsystem extends SubsystemBase {
                 }));
   }
 
+  /** Move the intake into the correct position and configure the intermediate motor for intaking */
   public Command intakeMode() {
-    // return setHeightAndTilt(ShooterConstants.INTAKE_HEIGHT, ShooterConstants.INTAKE_ANGLE)
-    //     .andThen(
-    //         Commands.runOnce(
-    //             () -> {
-    //               intermediateEncoder.setPosition(0);
-    //               intermediate.setIdleMode(IdleMode.kCoast);
-    //             }));
-    return Commands.runOnce(
-        () -> {
-          intermediateEncoder.setPosition(0);
-          intermediate.setIdleMode(IdleMode.kCoast);
-        });
+    return setHeightAndTilt(ShooterConstants.INTAKE_HEIGHT, ShooterConstants.INTAKE_ANGLE)
+        .andThen(
+            Commands.runOnce(
+                () -> {
+                  intermediateEncoder.setPosition(0);
+                  intermediate.setIdleMode(IdleMode.kCoast);
+                },
+                this));
   }
 
+  /** Wait until a note has been detected by the intermediate motor */
   public Command waitForIntake() {
     return Commands.waitUntil(() -> limitSwitch.get());
   }
 
+  /** Move the note into the correct positioon within the robot */
   public Command completeIntake() {
     PIDController controller =
         new PIDController(
@@ -384,15 +391,22 @@ public class ShootSubsystem extends SubsystemBase {
             });
   }
 
+  /** Set the height and tilt of the shooter. This command does require the current subsystem */
   private Command setHeightAndTilt(double height, Rotation2d angle) {
     return Commands.parallel(setHeight(height), setAngle(angle))
         .raceWith(Commands.run(() -> {}, this));
   }
 
+  /** Move the shooter and shoot into the amp */
   public Command scoreAmp() {
-    return null; // TODO: Set the angle and height to go under the stage
+    return setHeightAndTilt(ShooterConstants.AMP_HEIGHT, ShooterConstants.AMP_ANGLE)
+        .andThen(shoot(ShooterConstants.AMP_SPEED));
   }
 
+  /**
+   * Using the current position of the robot, score a note into the speaker. If that is not
+   * possible, do nothing
+   */
   public Command scoreSpeaker(Pose2d currentPos) {
     return null; // TODO: Using the current posistion of the robot, score in speaker. If unable,
     // do nothing
