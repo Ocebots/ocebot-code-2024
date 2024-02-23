@@ -219,16 +219,18 @@ public class ShootSubsystem extends SubsystemBase {
    */
   private Command shoot(double velocity) {
     return Commands.race(
-        setVelocityOneSide(velocity, leftShooter, leftShooterEncoder),
-        setVelocityOneSide(velocity, rightShooter, rightShooterEncoder),
-        Commands.parallel(
-                waitForVelocityOneSide(velocity, leftShooterEncoder),
-                waitForVelocityOneSide(velocity, rightShooterEncoder))
-            .andThen(
-                Commands.runEnd(
-                        () -> intermediate.set(IntermediateConstants.SHOOT_SPEED),
-                        () -> intermediate.set(0))
-                    .withTimeout(IntermediateConstants.SHOOT_TIME)));
+        Commands.race(
+            setVelocityOneSide(velocity, leftShooter, leftShooterEncoder),
+            setVelocityOneSide(velocity, rightShooter, rightShooterEncoder),
+            Commands.parallel(
+                    waitForVelocityOneSide(velocity, leftShooterEncoder),
+                    waitForVelocityOneSide(velocity, rightShooterEncoder))
+                .andThen(
+                    Commands.runEnd(
+                            () -> intermediate.set(IntermediateConstants.SHOOT_SPEED),
+                            () -> intermediate.set(0))
+                        .withTimeout(IntermediateConstants.SHOOT_TIME))),
+        Commands.run(() -> {}, this));
   }
 
   /**
@@ -351,7 +353,8 @@ public class ShootSubsystem extends SubsystemBase {
 
   /** Move the shooter and shoot into the amp */
   public Command scoreAmp() {
-    return null; // TODO: Set the angle and height to go under the stage
+    return setHeightAndTilt(ShooterConstants.AMP_HEIGHT, ShooterConstants.AMP_ANGLE)
+        .andThen(shoot(ShooterConstants.AMP_SPEED));
   }
 
   /**

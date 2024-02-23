@@ -90,4 +90,8 @@ public class ShooterConstants {
 
     public static double FINAL_OFFSET = 0;
   }
+
+  public static final Rotation2d AMP_ANGLE = Rotation2d.fromDegrees(0.0);
+  public static final double AMP_HEIGHT = 0.0;
+  public static final double AMP_SPEED = 0.0;
 }
