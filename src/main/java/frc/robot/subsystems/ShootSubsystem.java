@@ -58,6 +58,7 @@ public class ShootSubsystem extends SubsystemBase {
 
   private double targetHeight = 0;
   private double heightStartTime = 0;
+  boolean intakeSuccess = false;
 
   public ShootSubsystem() {
     super();
@@ -295,7 +296,7 @@ public class ShootSubsystem extends SubsystemBase {
   /** Wait until a note has been detected by the intermediate motor */
   public Command waitForIntake() {
     return Commands.waitUntil(
-        () -> Math.abs(intermediateEncoder.getPosition()) > IntermediateConstants.TOLERANCE);
+        () -> Math.abs(intermediateEncoder.getPosition()) > IntermediateConstants.TOLERANCE).andThen(() -> intakeSuccess = true);
   }
 
   /** Move the note into the correct position within the robot */
