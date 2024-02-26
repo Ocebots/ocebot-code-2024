@@ -4,6 +4,7 @@ import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.constants.CANMappings;
 import frc.constants.IntakeConstants;
@@ -27,11 +28,11 @@ public class IntakeSubsystem extends SubsystemBase {
   public Command intake(ShootSubsystem shooter) {
     return shooter
         .intakeMode()
-        .andThen(runIntake(false).raceWith(shooter.waitForIntake()))
-        .andThen(shooter.completeIntake());
+        .andThen(runIntake(false).raceWith(shooter.waitForIntake()).withTimeout(IntakeConstants.INTAKE_TIMEOUT))
+        .andThen(new ConditionalCommand(Commands.run(shooter::completeIntake), ejectNote(shooter), () -> shooter.intakeSuccess)).finallyDo(() -> shooter.intakeSuccess = false);
   }
 
   public Command ejectNote(ShootSubsystem shooter){
-    return runIntake(true).withTimeout(3);
+    return runIntake(true).withTimeout(IntakeConstants.EJECT_DURATION);
   }
 }
