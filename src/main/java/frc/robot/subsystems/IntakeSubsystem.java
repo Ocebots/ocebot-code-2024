@@ -23,18 +23,14 @@ public class IntakeSubsystem extends SubsystemBase {
     return Commands.runEnd(() -> motor.set(IntakeConstants.SPEED * (inverted ? -1 : 1)), () -> motor.set(0), this);
   }
 
-  private Command runIntake(){
-    return runIntake(false);
-  }
-
   public Command intake(ShootSubsystem shooter) {
-    return intake(shooter, false);
-  }
-
-  public Command intake(ShootSubsystem shooter, boolean reversed) {
     return shooter
         .intakeMode()
-        .andThen(runIntake(reversed).raceWith(shooter.waitForIntake()))
+        .andThen(runIntake(false).raceWith(shooter.waitForIntake()))
         .andThen(shooter.completeIntake());
+  }
+
+  public Command ejectNote(ShootSubsystem shooter){
+    return runIntake(true).withTimeout(3);
   }
 }
