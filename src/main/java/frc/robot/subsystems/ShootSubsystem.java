@@ -295,7 +295,7 @@ public class ShootSubsystem extends SubsystemBase {
   /** Wait until a note has been detected by the intermediate motor */
   public Command waitForIntake(IntakeSubsystem intake) {
     return Commands.waitUntil(
-        () -> Math.abs(intermediateEncoder.getPosition()) > IntermediateConstants.TOLERANCE).andThen(() -> intake.intakeSuccess = true);
+        () -> Math.abs(intermediateEncoder.getPosition()) > IntermediateConstants.TOLERANCE);
   }
 
   /** Move the note into the correct position within the robot */

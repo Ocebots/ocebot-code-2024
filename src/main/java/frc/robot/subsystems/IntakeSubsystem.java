@@ -6,12 +6,13 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.constants.CANMappings;
 import frc.constants.IntakeConstants;
 
 public class IntakeSubsystem extends SubsystemBase {
   private CANSparkMax motor = new CANSparkMax(CANMappings.INTAKE, MotorType.kBrushless);
-  boolean intakeSuccess = false;
+  private boolean intakeSuccess = false;
 
   public IntakeSubsystem() {
     motor.setSmartCurrentLimit(IntakeConstants.CURRENT_LIMIT);
@@ -29,11 +30,19 @@ public class IntakeSubsystem extends SubsystemBase {
   public Command intake(ShootSubsystem shooter) {
     return shooter
         .intakeMode()
-        .andThen(runIntake(false).raceWith(shooter.waitForIntake(this)).withTimeout(IntakeConstants.INTAKE_TIMEOUT))
-        .andThen(new ConditionalCommand(Commands.run(shooter::completeIntake), ejectNote(shooter), () -> intakeSuccess)).finallyDo(() -> intakeSuccess = false);
+        .andThen(Commands.runOnce(() -> this.intakeSuccess = true))
+        .andThen(
+            runIntake(false)
+                .raceWith(shooter.waitForIntake(this))
+                .raceWith(
+                    new WaitCommand(IntakeConstants.INTAKE_TIMEOUT)
+                        .finallyDo(() -> intakeSuccess = false)))
+        .andThen(
+            new ConditionalCommand(
+                Commands.run(shooter::completeIntake), ejectNote(shooter), () -> intakeSuccess));
   }
 
-  public Command ejectNote(ShootSubsystem shooter){
+  public Command ejectNote(ShootSubsystem shooter) {
     return runIntake(true).withTimeout(IntakeConstants.EJECT_DURATION);
   }
 }
