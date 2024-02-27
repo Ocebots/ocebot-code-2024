@@ -11,6 +11,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.*;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.constants.CANMappings;
 import frc.constants.DriveConstants;
@@ -268,5 +269,9 @@ public class DriveSubsystem extends SubsystemBase {
    */
   public double getTurnRate() {
     return this.gyro.getRate() * (DriveConstants.GYRO_IS_REVERSED ? -1.0 : 1.0);
+  }
+
+  public Command alignWithHeading(Rotation2d angle) {
+    return null;
   }
 }
