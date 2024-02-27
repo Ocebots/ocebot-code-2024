@@ -73,7 +73,7 @@ public class ShooterConstants {
     public static final double SHOOT_SPEED = 1;
     public static final double SHOOT_TIME = 1;
 
-    public static final double P_GAIN = 12;
+    public static final double P_GAIN = 15;
     public static final double I_GAIN = 0;
     public static final double D_GAIN = 0;
 
@@ -82,13 +82,13 @@ public class ShooterConstants {
     public static final double POSITION_CONVERSION_FACTOR = (1.0 / 15.0) * Math.PI * 0.0508;
     public static final double VELOCITY_CONVERSION_FACTOR = POSITION_CONVERSION_FACTOR / 60.0;
 
-    public static final double STATIC_GAIN = 0;
-    public static final double VELOCITY_GAIN = 0;
+    public static final double STATIC_GAIN = 0.5;
+    public static final double VELOCITY_GAIN = 0.2;
 
     public static final double MAX_VELOCITY = 1;
     public static final double MAX_ACCELERATION = 1;
 
-    public static final double FINAL_OFFSET = 0.15;
+    public static final double FINAL_OFFSET = 0.2;
   }
 
   public static final Rotation2d AMP_ANGLE = Rotation2d.fromDegrees(0.0);

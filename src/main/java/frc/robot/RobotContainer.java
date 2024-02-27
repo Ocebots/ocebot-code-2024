@@ -11,13 +11,16 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.constants.ControllerConstants;
+import frc.robot.subsystems.DriveSubsystem;
+import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShootSubsystem;
 import java.util.HashSet;
 import java.util.Set;
 
 public class RobotContainer {
-  // DriveSubsystem driveSubsystem = new DriveSubsystem();
+  DriveSubsystem driveSubsystem = new DriveSubsystem();
   ShootSubsystem shooter = new ShootSubsystem();
+  IntakeSubsystem intake = new IntakeSubsystem();
   CommandXboxController controller =
       new CommandXboxController(ControllerConstants.DRIVER_CONTROLLER_PORT);
 
@@ -28,26 +31,34 @@ public class RobotContainer {
     configureBindings();
 
     // driveSubsystem.setDefaultCommand(
-    //     Commands.run(
-    //         () -> {
-    //           driveSubsystem.drive(
-    //               -MathUtil.applyDeadband(
-    //                   controller.getLeftY(), ControllerConstants.DRIVE_DEADBAND),
-    //               -MathUtil.applyDeadband(
-    //                   controller.getLeftX(), ControllerConstants.DRIVE_DEADBAND),
-    //               -MathUtil.applyDeadband(
-    //                   controller.getRightX(), ControllerConstants.DRIVE_DEADBAND),
-    //               true,
-    //               true);
-    //         },
-    //         driveSubsystem)); // Maybe change this?
+    // Commands.run(
+    // () -> {
+    // driveSubsystem.drive(
+    // -MathUtil.applyDeadband(
+    // controller.getLeftY(), ControllerConstants.DRIVE_DEADBAND),
+    // -MathUtil.applyDeadband(
+    // controller.getLeftX(), ControllerConstants.DRIVE_DEADBAND),
+    // -MathUtil.applyDeadband(
+    // controller.getRightX(), ControllerConstants.DRIVE_DEADBAND),
+    // true,
+    // true);
+    // },
+    // driveSubsystem)); // Maybe change this?
 
     angle = shooter.getAngleRads();
     height = shooter.getHeight();
   }
 
   public void periodic() {
+    // double newAngle = Rotation2d
+    // .fromDegrees(SmartDashboard.getNumber("angle",
+    // Rotation2d.fromRadians(angle).getDegrees())).getRadians();
+    // if (newAngle != angle) {
+    // angle = newAngle;
+    // shooter.setHeightRaw(angle);
+    // }
     SmartDashboard.putNumber("angle", angle);
+    driveSubsystem.logData();
   }
 
   private void configureBindings() {
@@ -95,17 +106,20 @@ public class RobotContainer {
         .rightBumper()
         .onTrue(Commands.defer(() -> shooter.shoot(SmartDashboard.getNumber("speed", 20)), reqs));
 
-    this.controller
-        .leftBumper()
-        .onTrue(
-            shooter
-                .intakeMode()
-                .andThen(shooter.waitForIntake())
-                .andThen(shooter.completeIntake()));
+    // this.controller
+    // .leftBumper()
+    // .onTrue(
+    // shooter
+    // .intakeMode()
+    // .andThen(shooter.waitForIntake())
+    // .andThen(shooter.completeIntake()));
+
+    this.controller.leftBumper().onTrue(intake.intake(shooter));
 
     // this.controller
-    //     .rightBumper()
-    //     .whileTrue(Commands.run(() -> this.driveSubsystem.setX(), this.driveSubsystem));
+    // .rightBumper()
+    // .whileTrue(Commands.run(() -> this.driveSubsystem.setX(),
+    // this.driveSubsystem));
   }
 
   public Command getAutonomousCommand() {

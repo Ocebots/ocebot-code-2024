@@ -197,8 +197,10 @@ public class ShootSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("shooter/angle/current", tiltEncoder.getPosition());
     SmartDashboard.putNumber("shooter/angle/target", targetAngle.getRadians());
     SmartDashboard.putNumber("shooter/height/current", heightEncoder.getPosition());
+    SmartDashboard.putNumber("shooter/height/target", targetHeight);
 
     SmartDashboard.putNumber("shooter/inter/current", intermediateEncoder.getPosition());
+    SmartDashboard.putBoolean("shooter/inter/detected", limitSwitch.get());
   }
 
   public void setHeightRaw(double height) {
@@ -327,19 +329,18 @@ public class ShootSubsystem extends SubsystemBase {
 
   /** Move the intake into the correct position and configure the intermediate motor for intaking */
   public Command intakeMode() {
-    return setHeightAndTilt(ShooterConstants.INTAKE_HEIGHT, ShooterConstants.INTAKE_ANGLE)
-        .andThen(
-            Commands.runOnce(
-                () -> {
-                  intermediateEncoder.setPosition(0);
-                  intermediate.setIdleMode(IdleMode.kCoast);
-                },
-                this));
+    return Commands.runOnce(
+        () -> {
+          intermediateEncoder.setPosition(0);
+          intermediate.setIdleMode(IdleMode.kCoast);
+        },
+        this);
   }
 
   /** Wait until a note has been detected by the intermediate motor */
   public Command waitForIntake() {
-    return Commands.waitUntil(() -> limitSwitch.get());
+    return Commands.runEnd(() -> intermediate.set(1), () -> intermediate.set(0.0))
+        .raceWith(Commands.waitUntil(() -> limitSwitch.get()));
   }
 
   /** Move the note into the correct positioon within the robot */
@@ -360,35 +361,34 @@ public class ShootSubsystem extends SubsystemBase {
     Timer timer = new Timer();
     timer.start();
 
-    return Commands.runEnd(
-            () -> {
-              double currentPosititon = intermediateEncoder.getPosition();
-              TrapezoidProfile.State desiredState =
-                  profile.calculate(
-                      timer.get(),
-                      new TrapezoidProfile.State(
-                          currentPosititon, intermediateEncoder.getVelocity()),
-                      new TrapezoidProfile.State(IntermediateConstants.FINAL_OFFSET, 0));
+    return Commands.runOnce(() -> intermediateEncoder.setPosition(0.0))
+        .andThen(
+            Commands.runEnd(
+                    () -> {
+                      double currentPosititon = intermediateEncoder.getPosition();
+                      TrapezoidProfile.State desiredState =
+                          profile.calculate(
+                              timer.get(),
+                              new TrapezoidProfile.State(
+                                  currentPosititon, intermediateEncoder.getVelocity()),
+                              new TrapezoidProfile.State(IntermediateConstants.FINAL_OFFSET, 0));
 
-              intermediate.setVoltage(
-                  controller.calculate(currentPosititon, desiredState.position)
-                      + feedforward.calculate(desiredState.velocity));
-            },
-            () -> {
-              intermediate.set(0);
-              controller.close();
-              SmartDashboard.putBoolean("shooter/hasNote", true);
-            },
-            this)
-        .until(
-            () -> {
-              double currentPosition = intermediateEncoder.getPosition();
+                      intermediate.setVoltage(
+                          controller.calculate(currentPosititon, desiredState.position)
+                              + feedforward.calculate(desiredState.velocity));
+                    },
+                    () -> {
+                      intermediate.set(0);
+                      controller.close();
+                      SmartDashboard.putBoolean("shooter/hasNote", true);
+                    },
+                    this)
+                .until(
+                    () -> {
+                      double currentPosition = intermediateEncoder.getPosition();
 
-              return currentPosition
-                      >= IntermediateConstants.FINAL_OFFSET - IntermediateConstants.TOLERANCE
-                  && currentPosition
-                      <= IntermediateConstants.FINAL_OFFSET + IntermediateConstants.TOLERANCE;
-            });
+                      return currentPosition >= IntermediateConstants.FINAL_OFFSET;
+                    }));
   }
 
   /** Set the height and tilt of the shooter. This command does require the current subsystem */
