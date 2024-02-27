@@ -11,6 +11,7 @@ import frc.constants.IntakeConstants;
 
 public class IntakeSubsystem extends SubsystemBase {
   private CANSparkMax motor = new CANSparkMax(CANMappings.INTAKE, MotorType.kBrushless);
+  boolean intakeSuccess = false;
 
   public IntakeSubsystem() {
     motor.setSmartCurrentLimit(IntakeConstants.CURRENT_LIMIT);
@@ -28,8 +29,8 @@ public class IntakeSubsystem extends SubsystemBase {
   public Command intake(ShootSubsystem shooter) {
     return shooter
         .intakeMode()
-        .andThen(runIntake(false).raceWith(shooter.waitForIntake()).withTimeout(IntakeConstants.INTAKE_TIMEOUT))
-        .andThen(new ConditionalCommand(Commands.run(shooter::completeIntake), ejectNote(shooter), () -> shooter.intakeSuccess)).finallyDo(() -> shooter.intakeSuccess = false);
+        .andThen(runIntake(false).raceWith(shooter.waitForIntake(this)).withTimeout(IntakeConstants.INTAKE_TIMEOUT))
+        .andThen(new ConditionalCommand(Commands.run(shooter::completeIntake), ejectNote(shooter), () -> intakeSuccess)).finallyDo(() -> intakeSuccess = false);
   }
 
   public Command ejectNote(ShootSubsystem shooter){
