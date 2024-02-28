@@ -73,6 +73,14 @@ public class ShootSubsystem extends SubsystemBase {
   public ShootSubsystem() {
     super();
 
+    leftTilt.restoreFactoryDefaults();
+    rightTilt.restoreFactoryDefaults();
+    leftShooter.restoreFactoryDefaults();
+    rightShooter.restoreFactoryDefaults();
+    leftElevator.restoreFactoryDefaults();
+    rightElevator.restoreFactoryDefaults();
+    intermediate.restoreFactoryDefaults();
+
     leftTilt.setSmartCurrentLimit(TiltConstants.CURRENT_LIMIT);
     rightTilt.setSmartCurrentLimit(TiltConstants.CURRENT_LIMIT);
     leftTilt.setIdleMode(TiltConstants.IDLE_MODE);
@@ -125,6 +133,14 @@ public class ShootSubsystem extends SubsystemBase {
 
     targetAngle = Rotation2d.fromRadians(tiltEncoder.getPosition());
     targetHeight = heightEncoder.getPosition();
+
+    leftTilt.burnFlash();
+    rightTilt.burnFlash();
+    leftShooter.burnFlash();
+    rightShooter.burnFlash();
+    leftElevator.burnFlash();
+    rightElevator.burnFlash();
+    intermediate.burnFlash();
 
     armFeedforward =
         new ArmFeedforward(
