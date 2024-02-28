@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -30,20 +31,20 @@ public class RobotContainer {
   public RobotContainer() {
     configureBindings();
 
-    // driveSubsystem.setDefaultCommand(
-    // Commands.run(
-    // () -> {
-    // driveSubsystem.drive(
-    // -MathUtil.applyDeadband(
-    // controller.getLeftY(), ControllerConstants.DRIVE_DEADBAND),
-    // -MathUtil.applyDeadband(
-    // controller.getLeftX(), ControllerConstants.DRIVE_DEADBAND),
-    // -MathUtil.applyDeadband(
-    // controller.getRightX(), ControllerConstants.DRIVE_DEADBAND),
-    // true,
-    // true);
-    // },
-    // driveSubsystem)); // Maybe change this?
+    driveSubsystem.setDefaultCommand(
+        Commands.run(
+            () -> {
+              driveSubsystem.drive(
+                  -MathUtil.applyDeadband(
+                      controller.getLeftY(), ControllerConstants.DRIVE_DEADBAND),
+                  -MathUtil.applyDeadband(
+                      controller.getLeftX(), ControllerConstants.DRIVE_DEADBAND),
+                  -MathUtil.applyDeadband(
+                      controller.getRightX(), ControllerConstants.DRIVE_DEADBAND),
+                  true,
+                  true);
+            },
+            driveSubsystem)); // Maybe change this?
 
     angle = shooter.getAngleRads();
     height = shooter.getHeight();
