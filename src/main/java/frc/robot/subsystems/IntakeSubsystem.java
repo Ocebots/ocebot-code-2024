@@ -33,7 +33,7 @@ public class IntakeSubsystem extends SubsystemBase {
         .andThen(Commands.runOnce(() -> this.intakeSuccess = true))
         .andThen(
             runIntake(false)
-                .raceWith(shooter.waitForIntake(this))
+                .raceWith(shooter.waitForIntake())
                 .raceWith(
                     new WaitCommand(IntakeConstants.INTAKE_TIMEOUT)
                         .finallyDo(() -> intakeSuccess = false)))
