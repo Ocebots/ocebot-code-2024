@@ -185,16 +185,16 @@ public class MAXSwerveModule {
           module_path) { // TODO: Make the error output easier to understand, actually, probably not
     SmartDashboard.putNumber(
         module_path + "/turn/error",
-        this.getDesiredState().angle.getDegrees() - this.getState().angle.getDegrees());
+        this.getDesiredState().angle.getRadians() - this.getState().angle.getRadians());
     SmartDashboard.putNumber(
         module_path + "/drive/error",
         this.getDesiredState().speedMetersPerSecond - this.getState().speedMetersPerSecond);
 
-    SmartDashboard.putNumber(module_path + "/turn/measured", this.getState().angle.getDegrees());
+    SmartDashboard.putNumber(module_path + "/turn/measured", this.getState().angle.getRadians());
     SmartDashboard.putNumber(module_path + "/drive/measured", this.getState().speedMetersPerSecond);
 
     SmartDashboard.putNumber(
-        module_path + "/turn/commanded", this.getDesiredState().angle.getDegrees());
+        module_path + "/turn/commanded", this.getDesiredState().angle.getRadians());
     SmartDashboard.putNumber(
         module_path + "/drive/commanded", this.getDesiredState().speedMetersPerSecond);
   }

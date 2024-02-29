@@ -79,12 +79,12 @@ public class DriveSubsystem extends SubsystemBase {
     rearLeft.sendData("drive/rearLeft");
     rearRight.sendData("drive/rearRight");
 
-    SmartDashboard.putNumber("drive/gyro", getHeading().getDegrees());
+    SmartDashboard.putNumber("drive/gyro", getHeading().getRadians());
 
     SmartDashboard.putNumber("drive/odometry/x", odometry.getPoseMeters().getX());
     SmartDashboard.putNumber("drive/odometry/y", odometry.getPoseMeters().getY());
     SmartDashboard.putNumber(
-        "drive/odometry/rot", odometry.getPoseMeters().getRotation().getDegrees());
+        "drive/odometry/rot", odometry.getPoseMeters().getRotation().getRadians());
   }
 
   @Override

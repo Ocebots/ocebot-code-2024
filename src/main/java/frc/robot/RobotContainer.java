@@ -4,20 +4,23 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.controller.Controller;
 import frc.robot.controller.XboxSoloController;
 import frc.robot.subsystems.DriveSubsystem;
+import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.ShootSubsystem;
 
 public class RobotContainer {
   DriveSubsystem driveSubsystem = new DriveSubsystem();
-
+  ShootSubsystem shooter = new ShootSubsystem();
+  IntakeSubsystem intake = new IntakeSubsystem();
   Controller controller = new XboxSoloController();
 
   public RobotContainer() {
     configureBindings();
-    driveSubsystem.register();
 
     driveSubsystem.setDefaultCommand(
         Commands.run(
@@ -32,7 +35,16 @@ public class RobotContainer {
             driveSubsystem)); // Maybe change this?
   }
 
-  private void configureBindings() {}
+  public void periodic() {
+    driveSubsystem.logData();
+  }
+
+  private void configureBindings() {
+    this.controller.intake().onTrue(intake.intake(shooter));
+
+    this.controller.scoreSpeaker().onTrue(shooter.scoreSpeaker(new Pose2d()));
+    this.controller.scoreAmp().onTrue(shooter.scoreAmp());
+  }
 
   public Command getAutonomousCommand() {
     return Commands.print("No autonomous command configured");
