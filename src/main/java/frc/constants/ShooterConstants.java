@@ -5,7 +5,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 
 public class ShooterConstants {
   public static final double INTAKE_HEIGHT = 0;
-  public static final Rotation2d INTAKE_ANGLE = Rotation2d.fromDegrees(0);
+  public static final Rotation2d INTAKE_ANGLE = Rotation2d.fromDegrees(231);
 
   public static final class TiltConstants {
     public static final double GRAVITY_GAIN = 0;
@@ -16,7 +16,7 @@ public class ShooterConstants {
     public static final double I_GAIN = 0;
     public static final double D_GAIN = 0;
 
-    public static final double MAX_ANGULAR_VELOCITY = 2.0;
+    public static final double MAX_ANGULAR_VELOCITY = 1.0;
     public static final double MAX_ANGULAR_ACCELERATION = 2.0;
 
     public static final Rotation2d ANGLE_TOLERANCE = Rotation2d.fromDegrees(3);
@@ -37,7 +37,7 @@ public class ShooterConstants {
     public static final double I_GAIN = 0;
     public static final double D_GAIN = 0;
 
-    public static final double MAX_VELOCITY = 0.1;
+    public static final double MAX_VELOCITY = 0.05;
     public static final double MAX_ACCELERATION = 0.5;
 
     public static final double TOLERANCE = 0.03;
@@ -73,7 +73,7 @@ public class ShooterConstants {
     public static final double SHOOT_SPEED = 1;
     public static final double SHOOT_TIME = 1;
 
-    public static final double P_GAIN = 15;
+    public static final double P_GAIN = 25;
     public static final double I_GAIN = 0;
     public static final double D_GAIN = 0;
 
@@ -82,16 +82,16 @@ public class ShooterConstants {
     public static final double POSITION_CONVERSION_FACTOR = (1.0 / 15.0) * Math.PI * 0.0508;
     public static final double VELOCITY_CONVERSION_FACTOR = POSITION_CONVERSION_FACTOR / 60.0;
 
-    public static final double STATIC_GAIN = 0.5;
-    public static final double VELOCITY_GAIN = 0.2;
+    public static final double STATIC_GAIN = 1;
+    public static final double VELOCITY_GAIN = 0.3;
 
-    public static final double MAX_VELOCITY = 1;
+    public static final double MAX_VELOCITY = 0.5;
     public static final double MAX_ACCELERATION = 1;
 
-    public static final double FINAL_OFFSET = 0.2;
+    public static final double FINAL_OFFSET = 0.36;
   }
 
-  public static final Rotation2d AMP_ANGLE = Rotation2d.fromDegrees(0.0);
-  public static final double AMP_HEIGHT = 0.0;
-  public static final double AMP_SPEED = 0.0;
+  public static final Rotation2d AMP_ANGLE = Rotation2d.fromDegrees(140);
+  public static final double AMP_HEIGHT = 0.3;
+  public static final double AMP_SPEED = 7;
 }

@@ -1,7 +1,6 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.AbsoluteEncoder;
-import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkFlex;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
@@ -56,10 +55,10 @@ public class ShootSubsystem extends SubsystemBase {
 
   private DigitalInput limitSwitch = new DigitalInput(0);
 
-  private Rotation2d targetAngle = Rotation2d.fromDegrees(0);
+  private Rotation2d targetAngle = ShooterConstants.INTAKE_ANGLE;
   private double angleStartTime = 0;
 
-  private double targetHeight = 0;
+  private double targetHeight = ShooterConstants.INTAKE_HEIGHT;
   private double heightStartTime = 0;
 
   TrapezoidProfile heightProfile;
@@ -131,7 +130,7 @@ public class ShootSubsystem extends SubsystemBase {
     heightEncoder.setPositionConversionFactor(HeightConstants.POSITION_CONVERSION_FACTOR);
     heightEncoder.setVelocityConversionFactor(HeightConstants.VELOCITY_CONVERSION_FACTOR);
 
-    targetAngle = Rotation2d.fromRadians(tiltEncoder.getPosition());
+    heightEncoder.setPosition(0);
     targetHeight = heightEncoder.getPosition();
 
     leftTilt.burnFlash();
@@ -167,10 +166,13 @@ public class ShootSubsystem extends SubsystemBase {
         new TrapezoidProfile(
             new TrapezoidProfile.Constraints(
                 HeightConstants.MAX_VELOCITY, HeightConstants.MAX_ACCELERATION));
+
+    this.setDefaultCommand(
+        setHeightAndTilt(ShooterConstants.INTAKE_HEIGHT, ShooterConstants.INTAKE_ANGLE));
   }
 
-  public double getAngleRads() {
-    return this.tiltEncoder.getPosition();
+  public Rotation2d getAngle() {
+    return Rotation2d.fromRadians(tiltEncoder.getPosition());
   }
 
   public double getHeight() {
@@ -219,16 +221,6 @@ public class ShootSubsystem extends SubsystemBase {
     SmartDashboard.putBoolean("shooter/inter/detected", limitSwitch.get());
   }
 
-  public void setHeightRaw(double height) {
-    this.targetHeight = height;
-    this.heightStartTime = Timer.getFPGATimestamp();
-  }
-
-  public void setAngleRaw(Rotation2d angle) {
-    this.targetAngle = angle;
-    this.angleStartTime = Timer.getFPGATimestamp();
-  }
-
   /**
    * Control the velocity of one motor
    *
@@ -275,7 +267,7 @@ public class ShootSubsystem extends SubsystemBase {
    *
    * @param velocity The desired velocity of the note as it exits the schooter
    */
-  public Command shoot(double velocity) {
+  private Command shoot(double velocity) {
     SmartDashboard.putNumber("shooter/velocity/desired", velocity);
     return Commands.race(
         setVelocityOneSide(velocity, leftShooter, leftShooterEncoder),
@@ -345,12 +337,7 @@ public class ShootSubsystem extends SubsystemBase {
 
   /** Move the intake into the correct position and configure the intermediate motor for intaking */
   public Command intakeMode() {
-    return Commands.runOnce(
-        () -> {
-          intermediateEncoder.setPosition(0);
-          intermediate.setIdleMode(IdleMode.kCoast);
-        },
-        this);
+    return setHeightAndTilt(ShooterConstants.INTAKE_HEIGHT, ShooterConstants.INTAKE_ANGLE);
   }
 
   /** Wait until a note has been detected by the intermediate motor */
@@ -424,8 +411,8 @@ public class ShootSubsystem extends SubsystemBase {
    * possible, do nothing
    */
   public Command scoreSpeaker(Pose2d currentPos) {
-    return null; // TODO: Using the current posistion of the robot, score in speaker. If unable,
-    // do nothing
+    return setHeightAndTilt(ShooterConstants.INTAKE_HEIGHT, Rotation2d.fromDegrees(240))
+        .andThen(shoot(20));
   }
 
   public Command climb() {

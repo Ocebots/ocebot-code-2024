@@ -5,18 +5,14 @@
 package frc.robot;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.constants.ControllerConstants;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShootSubsystem;
-import java.util.HashSet;
-import java.util.Set;
 
 public class RobotContainer {
   DriveSubsystem driveSubsystem = new DriveSubsystem();
@@ -24,9 +20,6 @@ public class RobotContainer {
   IntakeSubsystem intake = new IntakeSubsystem();
   CommandXboxController controller =
       new CommandXboxController(ControllerConstants.DRIVER_CONTROLLER_PORT);
-
-  double angle = 0.0;
-  double height = 0.0;
 
   public RobotContainer() {
     configureBindings();
@@ -45,82 +38,17 @@ public class RobotContainer {
                   true);
             },
             driveSubsystem)); // Maybe change this?
-
-    angle = shooter.getAngleRads();
-    height = shooter.getHeight();
   }
 
   public void periodic() {
-    // double newAngle = Rotation2d
-    // .fromDegrees(SmartDashboard.getNumber("angle",
-    // Rotation2d.fromRadians(angle).getDegrees())).getRadians();
-    // if (newAngle != angle) {
-    // angle = newAngle;
-    // shooter.setHeightRaw(angle);
-    // }
-    SmartDashboard.putNumber("angle", angle);
     driveSubsystem.logData();
   }
 
   private void configureBindings() {
-    this.controller
-        .y()
-        .onTrue(
-            Commands.runOnce(
-                () -> {
-                  this.angle += 5 * Math.PI / 180;
-                  shooter.setAngleRaw(Rotation2d.fromRadians(angle));
-                }));
-    this.controller
-        .a()
-        .onTrue(
-            Commands.runOnce(
-                () -> {
-                  this.angle -= 5 * Math.PI / 180;
-                  shooter.setAngleRaw(Rotation2d.fromRadians(angle));
-                }));
+    this.controller.a().onTrue(intake.intake(shooter));
 
-    this.controller
-        .b()
-        .onTrue(
-            Commands.runOnce(
-                () -> {
-                  this.height += 0.02;
-                  shooter.setHeightRaw(height);
-                }));
-    this.controller
-        .x()
-        .onTrue(
-            Commands.runOnce(
-                () -> {
-                  this.height -= 0.02;
-                  shooter.setHeightRaw(height);
-                }));
-
-    SmartDashboard.putNumber("speed", 20);
-
-    Set<Subsystem> reqs = new HashSet<>();
-
-    reqs.add(shooter);
-
-    this.controller
-        .rightBumper()
-        .onTrue(Commands.defer(() -> shooter.shoot(SmartDashboard.getNumber("speed", 20)), reqs));
-
-    // this.controller
-    // .leftBumper()
-    // .onTrue(
-    // shooter
-    // .intakeMode()
-    // .andThen(shooter.waitForIntake())
-    // .andThen(shooter.completeIntake()));
-
-    this.controller.leftBumper().onTrue(intake.intake(shooter));
-
-    // this.controller
-    // .rightBumper()
-    // .whileTrue(Commands.run(() -> this.driveSubsystem.setX(),
-    // this.driveSubsystem));
+    this.controller.leftBumper().onTrue(shooter.scoreSpeaker(new Pose2d()));
+    this.controller.rightBumper().onTrue(shooter.scoreAmp());
   }
 
   public Command getAutonomousCommand() {
