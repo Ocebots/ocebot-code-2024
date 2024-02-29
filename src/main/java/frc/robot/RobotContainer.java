@@ -4,12 +4,11 @@
 
 package frc.robot;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.constants.ControllerConstants;
+import frc.robot.controller.Controller;
+import frc.robot.controller.XboxSoloController;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShootSubsystem;
@@ -18,8 +17,7 @@ public class RobotContainer {
   DriveSubsystem driveSubsystem = new DriveSubsystem();
   ShootSubsystem shooter = new ShootSubsystem();
   IntakeSubsystem intake = new IntakeSubsystem();
-  CommandXboxController controller =
-      new CommandXboxController(ControllerConstants.DRIVER_CONTROLLER_PORT);
+  Controller controller = new XboxSoloController();
 
   public RobotContainer() {
     configureBindings();
@@ -28,12 +26,9 @@ public class RobotContainer {
         Commands.run(
             () -> {
               driveSubsystem.drive(
-                  -MathUtil.applyDeadband(
-                      controller.getLeftY(), ControllerConstants.DRIVE_DEADBAND),
-                  -MathUtil.applyDeadband(
-                      controller.getLeftX(), ControllerConstants.DRIVE_DEADBAND),
-                  -MathUtil.applyDeadband(
-                      controller.getRightX(), ControllerConstants.DRIVE_DEADBAND),
+                  controller.getDriveX(),
+                  controller.getDriveY(),
+                  controller.getDriveTurn(),
                   true,
                   true);
             },
@@ -45,10 +40,10 @@ public class RobotContainer {
   }
 
   private void configureBindings() {
-    this.controller.a().onTrue(intake.intake(shooter));
+    this.controller.intake().onTrue(intake.intake(shooter));
 
-    this.controller.leftBumper().onTrue(shooter.scoreSpeaker(new Pose2d()));
-    this.controller.rightBumper().onTrue(shooter.scoreAmp());
+    this.controller.scoreSpeaker().onTrue(shooter.scoreSpeaker(new Pose2d()));
+    this.controller.scoreAmp().onTrue(shooter.scoreAmp());
   }
 
   public Command getAutonomousCommand() {

@@ -346,7 +346,7 @@ public class ShootSubsystem extends SubsystemBase {
         .raceWith(Commands.waitUntil(() -> limitSwitch.get()));
   }
 
-  /** Move the note into the correct positioon within the robot */
+  /** Move the note into the correct position within the robot */
   public Command completeIntake() {
     PIDController controller =
         new PIDController(
