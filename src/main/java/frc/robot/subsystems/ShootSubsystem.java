@@ -411,7 +411,7 @@ public class ShootSubsystem extends SubsystemBase {
    * possible, do nothing
    */
   public Command scoreSpeaker(Pose2d currentPos) {
-    return setHeightAndTilt(ShooterConstants.INTAKE_HEIGHT, Rotation2d.fromDegrees(240))
+    return setHeightAndTilt(ShooterConstants.SPEAKER_SCORE_HEIGHT, Rotation2d.fromDegrees(240))
         .andThen(shoot(20));
   }
 
