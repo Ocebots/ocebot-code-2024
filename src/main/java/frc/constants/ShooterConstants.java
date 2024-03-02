@@ -88,10 +88,11 @@ public class ShooterConstants {
     public static final double MAX_VELOCITY = 0.5;
     public static final double MAX_ACCELERATION = 1;
 
-    public static final double FINAL_OFFSET = 0.36;
+    public static final double FINAL_OFFSET = 0.35;
   }
 
   public static final Rotation2d AMP_ANGLE = Rotation2d.fromDegrees(140);
-  public static final double AMP_HEIGHT = 0.3;
+  public static final double AMP_HEIGHT = 0.285;
   public static final double AMP_SPEED = 7;
+  public static final double SPEAKER_SCORE_HEIGHT = 0.1;
 }

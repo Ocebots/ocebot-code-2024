@@ -10,17 +10,17 @@ public class XboxSoloController implements Controller {
 
   @Override
   public Trigger intake() {
-    return controller.y();
+    return controller.a();
   }
 
   @Override
   public Trigger scoreSpeaker() {
-    return controller.leftBumper();
+    return controller.leftTrigger();
   }
 
   @Override
   public Trigger scoreAmp() {
-    return controller.rightBumper();
+    return controller.rightTrigger();
   }
 
   @Override
@@ -35,16 +35,20 @@ public class XboxSoloController implements Controller {
 
   @Override
   public double getDriveX() {
-    return MathUtil.applyDeadband(-controller.getLeftY(), ControllerConstants.DRIVE_DEADBAND);
+    double applyDeadband =
+        MathUtil.applyDeadband(-controller.getLeftY(), ControllerConstants.DRIVE_DEADBAND);
+    return Math.pow(applyDeadband, 2) * Math.signum(applyDeadband);
   }
 
   @Override
   public double getDriveY() {
-    return MathUtil.applyDeadband(-controller.getLeftX(), ControllerConstants.DRIVE_DEADBAND);
+    double applyDeadband =
+        MathUtil.applyDeadband(-controller.getLeftX(), ControllerConstants.DRIVE_DEADBAND);
+    return Math.pow(applyDeadband, 2) * Math.signum(applyDeadband);
   }
 
   @Override
-  public double getDriveTurn() { // TODO: Do we need the negative?
+  public double getDriveTurn() {
     return MathUtil.applyDeadband(-controller.getRightX(), ControllerConstants.DRIVE_DEADBAND);
   }
 }
