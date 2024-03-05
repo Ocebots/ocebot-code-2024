@@ -93,6 +93,6 @@ public class ShooterConstants {
 
   public static final Rotation2d AMP_ANGLE = Rotation2d.fromDegrees(140);
   public static final double AMP_HEIGHT = 0.285;
-  public static final double AMP_SPEED = 7;
-  public static final double SPEAKER_SCORE_HEIGHT = 0.1;
+  public static final double AMP_SPEED = 4;
+  public static final double SPEAKER_SCORE_HEIGHT = 0.05;
 }
