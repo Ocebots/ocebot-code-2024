@@ -6,16 +6,22 @@ package frc.robot.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.math.MathSharedStore;
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.*;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.PIDCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.constants.CANMappings;
 import frc.constants.DriveConstants;
+import frc.constants.VisionConstants;
 import frc.utils.SwerveUtils;
+import org.photonvision.PhotonPoseEstimator;
 
 public class DriveSubsystem extends SubsystemBase {
   // Create MAXSwerveModules
@@ -58,9 +64,15 @@ public class DriveSubsystem extends SubsystemBase {
   private SlewRateLimiter rotLimiter =
       new SlewRateLimiter(DriveConstants.MAX_ROTATIONAL_ACCELERATION);
 
-  // Odometry class for tracking robot pose
-  SwerveDriveOdometry odometry =
-      new SwerveDriveOdometry(
+  private PhotonPoseEstimator vision =
+      new PhotonPoseEstimator(
+          VisionConstants.LAYOUT,
+          VisionConstants.STRATEGY,
+          VisionConstants.CAMERA,
+          VisionConstants.CAMERA_POSITION);
+
+  private SwerveDrivePoseEstimator poseEstimator =
+      new SwerveDrivePoseEstimator(
           DriveConstants.DRIVE_KINEMATICS,
           getHeading(),
           new SwerveModulePosition[] {
@@ -68,7 +80,8 @@ public class DriveSubsystem extends SubsystemBase {
             this.frontRight.getPosition(),
             this.rearLeft.getPosition(),
             this.rearRight.getPosition()
-          });
+          },
+          new Pose2d(0, 0, getHeading()));
 
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {}
@@ -81,16 +94,18 @@ public class DriveSubsystem extends SubsystemBase {
 
     SmartDashboard.putNumber("drive/gyro", getHeading().getRadians());
 
-    SmartDashboard.putNumber("drive/odometry/x", odometry.getPoseMeters().getX());
-    SmartDashboard.putNumber("drive/odometry/y", odometry.getPoseMeters().getY());
-    SmartDashboard.putNumber(
-        "drive/odometry/rot", odometry.getPoseMeters().getRotation().getRadians());
+    // SmartDashboard.putNumber("drive/odometry/x",
+    // odometry.getPoseMeters().getX());
+    // SmartDashboard.putNumber("drive/odometry/y",
+    // odometry.getPoseMeters().getY());
+    // SmartDashboard.putNumber(
+    // "drive/odometry/rot", odometry.getPoseMeters().getRotation().getRadians());
   }
 
   @Override
   public void periodic() {
     // Update the odometry in the periodic block
-    this.odometry.update(
+    this.poseEstimator.update(
         getHeading(),
         new SwerveModulePosition[] {
           this.frontLeft.getPosition(),
@@ -98,6 +113,15 @@ public class DriveSubsystem extends SubsystemBase {
           this.rearLeft.getPosition(),
           this.rearRight.getPosition()
         });
+
+    vision.setReferencePose(this.poseEstimator.getEstimatedPosition());
+
+    vision
+        .update()
+        .ifPresent(
+            (pose) ->
+                this.poseEstimator.addVisionMeasurement(
+                    pose.estimatedPose.toPose2d(), pose.timestampSeconds));
   }
 
   /**
@@ -106,24 +130,7 @@ public class DriveSubsystem extends SubsystemBase {
    * @return The pose.
    */
   public Pose2d getPose() {
-    return this.odometry.getPoseMeters();
-  }
-
-  /**
-   * Resets the odometry to the specified pose.
-   *
-   * @param pose The pose to which to set the odometry.
-   */
-  public void resetOdometry(Pose2d pose) {
-    this.odometry.resetPosition(
-        getHeading(),
-        new SwerveModulePosition[] {
-          this.frontLeft.getPosition(),
-          this.frontRight.getPosition(),
-          this.rearLeft.getPosition(),
-          this.rearRight.getPosition()
-        },
-        pose);
+    return this.poseEstimator.getEstimatedPosition();
   }
 
   /**
@@ -272,6 +279,17 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
   public Command alignWithHeading(Rotation2d angle) {
-    return null;
+    PIDController controller =
+        new PIDController(
+            DriveConstants.TURN_P_GAIN, DriveConstants.TURN_I_GAIN, DriveConstants.TURN_D_GAIN);
+
+    controller.enableContinuousInput(-Math.PI, Math.PI);
+
+    return new PIDCommand(
+        controller,
+        () -> MathUtil.angleModulus(getPose().getRotation().getRadians()),
+        MathUtil.angleModulus(angle.getRadians()),
+        (value) -> this.drive(0, 0, value, false, false),
+        this);
   }
 }

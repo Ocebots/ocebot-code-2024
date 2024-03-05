@@ -14,6 +14,8 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -410,8 +412,23 @@ public class ShootSubsystem extends SubsystemBase {
    * Using the current position of the robot, score a note into the speaker. If that is not
    * possible, do nothing
    */
-  public Command scoreSpeaker(Pose2d currentPos) {
-    return setHeightAndTilt(ShooterConstants.SPEAKER_SCORE_HEIGHT, Rotation2d.fromDegrees(240))
+  public Command scoreSpeaker(DriveSubsystem drive) {
+    Pose2d currentPos = drive.getPose();
+    Pose2d speakerPose =
+        DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+            ? new Pose2d(0.229997, 5.54787, Rotation2d.fromDegrees(0))
+            : new Pose2d(16.5412 - 0.229997, 5.54787, Rotation2d.fromDegrees(0));
+
+    Rotation2d angle = speakerPose.relativeTo(currentPos).getRotation();
+
+    double heightChange =
+        2.04508 - 0 - ShooterConstants.SPEAKER_SCORE_HEIGHT; // Height of the robot
+    double distance = speakerPose.getTranslation().getDistance(currentPos.getTranslation());
+
+    return drive
+        .alignWithHeading(angle)
+        .alongWith(
+            setHeightAndTilt(ShooterConstants.SPEAKER_SCORE_HEIGHT, Rotation2d.fromDegrees(240)))
         .andThen(shoot(20));
   }
 
