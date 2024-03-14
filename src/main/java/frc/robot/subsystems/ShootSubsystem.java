@@ -419,16 +419,15 @@ public class ShootSubsystem extends SubsystemBase {
             ? new Pose2d(0.229997, 5.54787, Rotation2d.fromDegrees(0))
             : new Pose2d(16.5412 - 0.229997, 5.54787, Rotation2d.fromDegrees(0));
 
-    Rotation2d angle = speakerPose.relativeTo(currentPos).getRotation();
+    Rotation2d angle = speakerPose.getTranslation().minus(currentPos.getTranslation()).getAngle();
 
-    double heightChange =
-        2.04508 - 0 - ShooterConstants.SPEAKER_SCORE_HEIGHT; // Height of the robot
     double distance = speakerPose.getTranslation().getDistance(currentPos.getTranslation());
+
+    Rotation2d shootAngle = Rotation2d.fromDegrees(227 * Math.pow(distance, -0.0913));
 
     return drive
         .alignWithHeading(angle)
-        .alongWith(
-            setHeightAndTilt(ShooterConstants.SPEAKER_SCORE_HEIGHT, Rotation2d.fromDegrees(240)))
+        .alongWith(setHeightAndTilt(ShooterConstants.SPEAKER_SCORE_HEIGHT, shootAngle))
         .andThen(shoot(20));
   }
 

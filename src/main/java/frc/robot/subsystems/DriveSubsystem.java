@@ -13,6 +13,7 @@ import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.*;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.PIDCommand;
@@ -52,6 +53,8 @@ public class DriveSubsystem extends SubsystemBase {
   // The gyro sensor
   private final AHRS gyro = new AHRS();
 
+  private final Field2d field = new Field2d();
+
   private double currentRotation = 0.0;
 
   // Slew rate filter variables for controlling lateral acceleration
@@ -84,7 +87,9 @@ public class DriveSubsystem extends SubsystemBase {
           new Pose2d(0, 0, getHeading()));
 
   /** Creates a new DriveSubsystem. */
-  public DriveSubsystem() {}
+  public DriveSubsystem() {
+    SmartDashboard.putData(field);
+  }
 
   public void logData() {
     frontLeft.sendData("drive/frontLeft");
@@ -93,6 +98,8 @@ public class DriveSubsystem extends SubsystemBase {
     rearRight.sendData("drive/rearRight");
 
     SmartDashboard.putNumber("drive/gyro", getHeading().getRadians());
+
+    field.setRobotPose(getPose());
 
     // SmartDashboard.putNumber("drive/odometry/x",
     // odometry.getPoseMeters().getX());
@@ -283,13 +290,15 @@ public class DriveSubsystem extends SubsystemBase {
         new PIDController(
             DriveConstants.TURN_P_GAIN, DriveConstants.TURN_I_GAIN, DriveConstants.TURN_D_GAIN);
 
+    controller.setTolerance(Rotation2d.fromDegrees(2).getRadians());
     controller.enableContinuousInput(-Math.PI, Math.PI);
 
     return new PIDCommand(
-        controller,
-        () -> MathUtil.angleModulus(getPose().getRotation().getRadians()),
-        MathUtil.angleModulus(angle.getRadians()),
-        (value) -> this.drive(0, 0, value, false, false),
-        this);
+            controller,
+            () -> MathUtil.angleModulus(getPose().getRotation().getRadians()),
+            MathUtil.angleModulus(angle.getRadians()),
+            (value) -> this.drive(0, 0, Math.max(Math.min(value, 0.2), -0.2), false, false),
+            this)
+        .until(() -> controller.atSetpoint());
   }
 }
