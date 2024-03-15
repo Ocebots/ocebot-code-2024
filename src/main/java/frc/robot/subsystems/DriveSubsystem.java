@@ -13,6 +13,8 @@ import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.*;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -219,7 +221,15 @@ public class DriveSubsystem extends SubsystemBase {
         DriveConstants.DRIVE_KINEMATICS.toSwerveModuleStates(
             fieldRelative
                 ? ChassisSpeeds.fromFieldRelativeSpeeds(
-                    xSpeedCommanded, ySpeedCommanded, this.currentRotation, getHeading())
+                    xSpeedCommanded,
+                    ySpeedCommanded,
+                    this.currentRotation,
+                    getPose()
+                        .getRotation()
+                        .plus(
+                            DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+                                ? Rotation2d.fromDegrees(0)
+                                : Rotation2d.fromDegrees(180)))
                 : new ChassisSpeeds(xSpeedCommanded, ySpeedCommanded, this.currentRotation));
 
     SwerveDriveKinematics.desaturateWheelSpeeds(
@@ -271,7 +281,7 @@ public class DriveSubsystem extends SubsystemBase {
    *
    * @return the robot's heading in degrees, from -180 to 180
    */
-  public Rotation2d getHeading() {
+  private Rotation2d getHeading() {
     return Rotation2d.fromDegrees(
         this.gyro.getAngle() * (DriveConstants.GYRO_IS_REVERSED ? -1.0 : 1.0));
   }
