@@ -7,18 +7,19 @@ package frc.robot.subsystems;
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.*;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.PIDCommand;
+import edu.wpi.first.wpilibj2.command.ProfiledPIDCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.constants.CANMappings;
 import frc.constants.DriveConstants;
@@ -296,18 +297,21 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
   public Command alignWithHeading(Rotation2d angle) {
-    PIDController controller =
-        new PIDController(
-            DriveConstants.TURN_P_GAIN, DriveConstants.TURN_I_GAIN, DriveConstants.TURN_D_GAIN);
+    ProfiledPIDController controller =
+        new ProfiledPIDController(
+            DriveConstants.TURN_P_GAIN,
+            DriveConstants.TURN_I_GAIN,
+            DriveConstants.TURN_D_GAIN,
+            DriveConstants.TURN_CONSTRAINTS);
 
     controller.setTolerance(Rotation2d.fromDegrees(2).getRadians());
     controller.enableContinuousInput(-Math.PI, Math.PI);
 
-    return new PIDCommand(
+    return new ProfiledPIDCommand(
             controller,
             () -> MathUtil.angleModulus(getPose().getRotation().getRadians()),
-            MathUtil.angleModulus(angle.getRadians()),
-            (value) -> this.drive(0, 0, Math.max(Math.min(value, 0.2), -0.2), false, false),
+            () -> new TrapezoidProfile.State(MathUtil.angleModulus(angle.getRadians()), 0),
+            (value, _targetState) -> this.drive(0, 0, value, false, false),
             this)
         .until(() -> controller.atSetpoint());
   }
