@@ -95,4 +95,7 @@ public class ShooterConstants {
   public static final double AMP_HEIGHT = 0.285;
   public static final double AMP_SPEED = 4;
   public static final double SPEAKER_SCORE_HEIGHT = 0.05;
+
+  public static final double AUTOAIM_GAIN = 225;
+  public static final double AUTOAIM_EXPONENT = -0.0782;
 }

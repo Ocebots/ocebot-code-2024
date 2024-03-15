@@ -74,6 +74,8 @@ public class ShootSubsystem extends SubsystemBase {
   public ShootSubsystem() {
     super();
 
+    SmartDashboard.putNumber("angle", 200);
+
     leftTilt.restoreFactoryDefaults();
     rightTilt.restoreFactoryDefaults();
     leftShooter.restoreFactoryDefaults();
@@ -423,7 +425,13 @@ public class ShootSubsystem extends SubsystemBase {
 
     double distance = speakerPose.getTranslation().getDistance(currentPos.getTranslation());
 
-    Rotation2d shootAngle = Rotation2d.fromDegrees(227 * Math.pow(distance, -0.0913));
+    Rotation2d shootAngle =
+        Rotation2d.fromDegrees(
+            ShooterConstants.AUTOAIM_GAIN * Math.pow(distance, ShooterConstants.AUTOAIM_EXPONENT));
+    // Rotation2d shootAngle = Rotation2d.fromDegrees(SmartDashboard.getNumber("angle", 200));
+
+    System.out.println(distance);
+    System.out.println(shootAngle.getDegrees());
 
     return drive
         .alignWithHeading(angle)
