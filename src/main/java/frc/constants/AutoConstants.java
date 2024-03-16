@@ -1,5 +1,6 @@
 package frc.constants;
 
+import com.pathplanner.lib.path.PathConstraints;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 
 public class AutoConstants {
@@ -16,4 +17,11 @@ public class AutoConstants {
   public static final TrapezoidProfile.Constraints THETA_CONTROLLER_CONSTRAINTS =
       new TrapezoidProfile.Constraints(
           MAX_ANGULAR_SPEED_RADIANS_PER_SECOND, MAX_ANGULAR_SPEED_RADIANS_PER_SECOND_SQUARED);
+
+  public static final PathConstraints PATH_CONSTRAINTS =
+      new PathConstraints(
+          MAX_SPEED_METERS_PER_SECOND,
+          MAX_ACCELERATION_METERS_PER_SECOND_SQUARED,
+          MAX_ANGULAR_SPEED_RADIANS_PER_SECOND,
+          MAX_ANGULAR_SPEED_RADIANS_PER_SECOND_SQUARED);
 }

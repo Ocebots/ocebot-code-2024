@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.constants.CANMappings;
 import frc.constants.DriveConstants;
 import frc.constants.VisionConstants;
+import frc.robot.auto.Vision;
 import frc.utils.SwerveUtils;
 import org.photonvision.PhotonPoseEstimator;
 
@@ -74,7 +75,7 @@ public class DriveSubsystem extends SubsystemBase {
       new PhotonPoseEstimator(
           VisionConstants.LAYOUT,
           VisionConstants.STRATEGY,
-          VisionConstants.CAMERA,
+          Vision.getCamera(),
           VisionConstants.CAMERA_POSITION);
 
   private SwerveDrivePoseEstimator poseEstimator =
