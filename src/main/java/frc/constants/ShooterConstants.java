@@ -6,7 +6,7 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 
 public class ShooterConstants {
   public static final double INTAKE_HEIGHT = 0;
-  public static final Rotation2d INTAKE_ANGLE = Rotation2d.fromDegrees(231);
+  public static final Rotation2d INTAKE_ANGLE = Rotation2d.fromDegrees(224);
 
   public static final class TiltConstants {
     public static final double GRAVITY_GAIN = 0;
@@ -17,7 +17,7 @@ public class ShooterConstants {
     public static final double I_GAIN = 0;
     public static final double D_GAIN = 0;
 
-    public static final double MAX_ANGULAR_VELOCITY = 1.0;
+    public static final double MAX_ANGULAR_VELOCITY = 4.0;
     public static final double MAX_ANGULAR_ACCELERATION = 2.0;
 
     public static final TrapezoidProfile.Constraints CONSTRAINTS =
@@ -41,7 +41,7 @@ public class ShooterConstants {
     public static final double I_GAIN = 0;
     public static final double D_GAIN = 0;
 
-    public static final double MAX_VELOCITY = 0.05;
+    public static final double MAX_VELOCITY = 0.5;
     public static final double MAX_ACCELERATION = 0.5;
 
     public static final TrapezoidProfile.Constraints CONSTRAINTS =
