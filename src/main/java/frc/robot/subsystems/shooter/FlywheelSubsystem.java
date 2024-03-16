@@ -12,8 +12,8 @@ import edu.wpi.first.wpilibj2.command.PIDSubsystem;
 import frc.constants.ShooterConstants.FlywheelConstants;
 
 public class FlywheelSubsystem extends PIDSubsystem {
-  private final CANSparkFlex motor;
-  private final RelativeEncoder encoder;
+  public final CANSparkFlex motor;
+  public final RelativeEncoder encoder;
 
   private final SimpleMotorFeedforward feedforward =
       new SimpleMotorFeedforward(FlywheelConstants.STATIC_GAIN, FlywheelConstants.VELOCITY_GAIN);

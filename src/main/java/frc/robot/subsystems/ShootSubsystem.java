@@ -1,5 +1,9 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Volts;
+
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
@@ -14,6 +18,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.constants.CANMappings;
 import frc.constants.ShooterConstants;
 import frc.constants.ShooterConstants.IntermediateConstants;
@@ -177,5 +183,43 @@ public class ShootSubsystem extends SubsystemBase {
 
   public Command climb() {
     return null; // TODO: Climb onto the chain
+  }
+
+  public Command sysId() {
+    SysIdRoutine routine =
+        new SysIdRoutine(
+            new SysIdRoutine.Config(),
+            new SysIdRoutine.Mechanism(
+                (voltage) -> {
+                  leftShooter.motor.setVoltage(voltage.in(Volts));
+                  rightShooter.motor.setVoltage(voltage.in(Volts));
+                },
+                (logger) -> {
+                  logger
+                      .motor("left")
+                      .voltage(
+                          Volts.of(
+                              leftShooter.motor.getBusVoltage()
+                                  * leftShooter.motor.getAppliedOutput()))
+                      .linearPosition(Meters.of(leftShooter.encoder.getPosition()))
+                      .linearVelocity(MetersPerSecond.of(leftShooter.encoder.getVelocity()));
+
+                  logger
+                      .motor("right")
+                      .voltage(
+                          Volts.of(
+                              rightShooter.motor.getBusVoltage()
+                                  * rightShooter.motor.getAppliedOutput()))
+                      .linearPosition(Meters.of(rightShooter.encoder.getPosition()))
+                      .linearVelocity(MetersPerSecond.of(rightShooter.encoder.getVelocity()));
+                },
+                this));
+
+    return routine
+        .dynamic(Direction.kForward)
+        .andThen(
+            routine.dynamic(Direction.kReverse),
+            routine.quasistatic(Direction.kForward),
+            routine.quasistatic(Direction.kReverse));
   }
 }
