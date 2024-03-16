@@ -2,10 +2,11 @@ package frc.constants;
 
 import com.revrobotics.CANSparkBase.IdleMode;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 
 public class ShooterConstants {
   public static final double INTAKE_HEIGHT = 0;
-  public static final Rotation2d INTAKE_ANGLE = Rotation2d.fromDegrees(231);
+  public static final Rotation2d INTAKE_ANGLE = Rotation2d.fromDegrees(224);
 
   public static final class TiltConstants {
     public static final double GRAVITY_GAIN = 0;
@@ -16,8 +17,11 @@ public class ShooterConstants {
     public static final double I_GAIN = 0;
     public static final double D_GAIN = 0;
 
-    public static final double MAX_ANGULAR_VELOCITY = 1.0;
+    public static final double MAX_ANGULAR_VELOCITY = 4.0;
     public static final double MAX_ANGULAR_ACCELERATION = 2.0;
+
+    public static final TrapezoidProfile.Constraints CONSTRAINTS =
+        new TrapezoidProfile.Constraints(MAX_ANGULAR_VELOCITY, MAX_ANGULAR_ACCELERATION);
 
     public static final Rotation2d ANGLE_TOLERANCE = Rotation2d.fromDegrees(3);
 
@@ -37,8 +41,11 @@ public class ShooterConstants {
     public static final double I_GAIN = 0;
     public static final double D_GAIN = 0;
 
-    public static final double MAX_VELOCITY = 0.05;
+    public static final double MAX_VELOCITY = 0.5;
     public static final double MAX_ACCELERATION = 0.5;
+
+    public static final TrapezoidProfile.Constraints CONSTRAINTS =
+        new TrapezoidProfile.Constraints(MAX_VELOCITY, MAX_ACCELERATION);
 
     public static final double TOLERANCE = 0.03;
 
@@ -49,7 +56,7 @@ public class ShooterConstants {
     public static final int CURRENT_LIMIT = 50;
   }
 
-  public static class ShooterMotorConstants {
+  public static class FlywheelConstants {
     public static int CURRENT_LIMIT = 50;
     public static IdleMode IDLE_MODE = IdleMode.kCoast;
 
