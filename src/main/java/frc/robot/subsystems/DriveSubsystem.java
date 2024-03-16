@@ -198,8 +198,8 @@ public class DriveSubsystem extends SubsystemBase {
           Math.max(
               0,
               DriveConstants.MAX_DRIVE_ANGULAR_VELOCITY
-                  * ((1 - currentTranslationMag / DriveConstants.MAX_SPEED_METERS_PER_SECOND) * 0.90
-                      + 0.10));
+                  * ((1 - currentTranslationMag / DriveConstants.MAX_SPEED_METERS_PER_SECOND) * 0.30
+                      + 0.70));
 
       double currentTime = MathSharedStore.getTimestamp();
 
