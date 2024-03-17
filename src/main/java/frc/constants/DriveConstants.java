@@ -45,5 +45,5 @@ public class DriveConstants {
   public static final double TURN_D_GAIN = 0.0;
 
   public static final TrapezoidProfile.Constraints TURN_CONSTRAINTS =
-      new TrapezoidProfile.Constraints(1, 1);
+      new TrapezoidProfile.Constraints(6, 12);
 }

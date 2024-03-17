@@ -313,6 +313,6 @@ public class DriveSubsystem extends SubsystemBase {
             () -> new TrapezoidProfile.State(MathUtil.angleModulus(angle.getRadians()), 0),
             (value, _targetState) -> this.drive(0, 0, value, false, false),
             this)
-        .until(() -> controller.atSetpoint());
+        .until(() -> controller.atGoal());
   }
 }
