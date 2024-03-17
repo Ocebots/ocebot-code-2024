@@ -199,8 +199,8 @@ public class DriveSubsystem extends SubsystemBase {
           Math.max(
               0,
               DriveConstants.MAX_DRIVE_ANGULAR_VELOCITY
-                  * ((1 - currentTranslationMag / DriveConstants.MAX_SPEED_METERS_PER_SECOND) * 0.90
-                      + 0.10));
+                  * ((1 - currentTranslationMag / DriveConstants.MAX_SPEED_METERS_PER_SECOND) * 0.30
+                      + 0.70));
 
       double currentTime = MathSharedStore.getTimestamp();
 
@@ -314,6 +314,6 @@ public class DriveSubsystem extends SubsystemBase {
             () -> new TrapezoidProfile.State(MathUtil.angleModulus(angle.getRadians()), 0),
             (value, _targetState) -> this.drive(0, 0, value, false, false),
             this)
-        .until(() -> controller.atSetpoint());
+        .until(() -> controller.atGoal());
   }
 }

@@ -15,8 +15,8 @@ public class DriveConstants {
   public static final double MAX_SPEED_METERS_PER_SECOND = 4.8;
   public static final double MAX_ANGULAR_SPEED = 2 * Math.PI; // radians per second
 
-  public static final double MAX_ACCELERATION = 6; // meters per second per second
-  public static final double MAX_DRIVE_ANGULAR_VELOCITY = 8; // radians per second
+  public static final double MAX_ACCELERATION = 10; // meters per second per second
+  public static final double MAX_DRIVE_ANGULAR_VELOCITY = 10; // radians per second
   public static final double MAX_ROTATIONAL_ACCELERATION = 2; // percent per second
 
   // Chassis configuration
@@ -45,5 +45,5 @@ public class DriveConstants {
   public static final double TURN_D_GAIN = 0.0;
 
   public static final TrapezoidProfile.Constraints TURN_CONSTRAINTS =
-      new TrapezoidProfile.Constraints(1, 1);
+      new TrapezoidProfile.Constraints(6, 12);
 }
