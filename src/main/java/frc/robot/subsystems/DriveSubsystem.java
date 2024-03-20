@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
+import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -21,6 +22,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ProfiledPIDCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.constants.AutoConstants;
 import frc.constants.CANMappings;
 import frc.constants.DriveConstants;
 import frc.constants.VisionConstants;
@@ -92,7 +94,38 @@ public class DriveSubsystem extends SubsystemBase {
 
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {
+    AutoBuilder.configureHolonomic(
+        this::getPose,
+        (_newPose) -> {},
+        this::getChassisSpeeds,
+        this::setChassisSpeeds,
+        AutoConstants.PATH_CONFIG,
+        () -> DriverStation.getAlliance().orElse(Alliance.Blue) != Alliance.Blue,
+        this);
+
     SmartDashboard.putData(field);
+  }
+
+  private ChassisSpeeds getChassisSpeeds() {
+    return DriveConstants.DRIVE_KINEMATICS.toChassisSpeeds(
+        new SwerveModuleState[] {
+          this.frontLeft.getState(),
+          this.frontRight.getState(),
+          this.rearLeft.getState(),
+          this.rearRight.getState()
+        });
+  }
+
+  private void setChassisSpeeds(ChassisSpeeds speeds) {
+    var swerveModuleStates = DriveConstants.DRIVE_KINEMATICS.toSwerveModuleStates(speeds);
+
+    SwerveDriveKinematics.desaturateWheelSpeeds(
+        swerveModuleStates, DriveConstants.MAX_SPEED_METERS_PER_SECOND);
+
+    this.frontLeft.setDesiredState(swerveModuleStates[0]);
+    this.frontRight.setDesiredState(swerveModuleStates[1]);
+    this.rearLeft.setDesiredState(swerveModuleStates[2]);
+    this.rearRight.setDesiredState(swerveModuleStates[3]);
   }
 
   public void logData() {
@@ -219,28 +252,19 @@ public class DriveSubsystem extends SubsystemBase {
       this.currentRotation = rot * DriveConstants.MAX_ANGULAR_SPEED;
     }
 
-    var swerveModuleStates =
-        DriveConstants.DRIVE_KINEMATICS.toSwerveModuleStates(
-            fieldRelative
-                ? ChassisSpeeds.fromFieldRelativeSpeeds(
-                    xSpeedCommanded,
-                    ySpeedCommanded,
-                    this.currentRotation,
-                    getPose()
-                        .getRotation()
-                        .plus(
-                            DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
-                                ? Rotation2d.fromDegrees(0)
-                                : Rotation2d.fromDegrees(180)))
-                : new ChassisSpeeds(xSpeedCommanded, ySpeedCommanded, this.currentRotation));
-
-    SwerveDriveKinematics.desaturateWheelSpeeds(
-        swerveModuleStates, DriveConstants.MAX_SPEED_METERS_PER_SECOND);
-
-    this.frontLeft.setDesiredState(swerveModuleStates[0]);
-    this.frontRight.setDesiredState(swerveModuleStates[1]);
-    this.rearLeft.setDesiredState(swerveModuleStates[2]);
-    this.rearRight.setDesiredState(swerveModuleStates[3]);
+    this.setChassisSpeeds(
+        fieldRelative
+            ? ChassisSpeeds.fromFieldRelativeSpeeds(
+                xSpeedCommanded,
+                ySpeedCommanded,
+                this.currentRotation,
+                getPose()
+                    .getRotation()
+                    .plus(
+                        DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+                            ? Rotation2d.fromDegrees(0)
+                            : Rotation2d.fromDegrees(180)))
+            : new ChassisSpeeds(xSpeedCommanded, ySpeedCommanded, this.currentRotation));
   }
 
   /** Sets the wheels into an X formation to prevent movement. */
