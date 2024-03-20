@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.constants.CANMappings;
 import frc.constants.ShooterConstants;
+import frc.constants.ShooterConstants.FlywheelConstants;
 import frc.constants.ShooterConstants.IntermediateConstants;
 import frc.robot.subsystems.shooter.FlywheelSubsystem;
 import frc.robot.subsystems.shooter.HeightSubsystem;
@@ -40,8 +41,22 @@ public class ShootSubsystem extends SubsystemBase {
   private final TiltSubsystem tiltSubsystem = new TiltSubsystem();
   private final HeightSubsystem heightSubsystem = new HeightSubsystem();
 
-  private FlywheelSubsystem leftShooter = new FlywheelSubsystem(CANMappings.SHOOTER_LEFT, false);
-  private FlywheelSubsystem rightShooter = new FlywheelSubsystem(CANMappings.SHOOTER_RIGHT, true);
+  private FlywheelSubsystem leftShooter =
+      new FlywheelSubsystem(
+          CANMappings.SHOOTER_LEFT,
+          false,
+          FlywheelConstants.LEFT_P_GAIN,
+          FlywheelConstants.LEFT_STATIC_GAIN,
+          FlywheelConstants.LEFT_VELOCITY_GAIN,
+          FlywheelConstants.LEFT_ACCELERATION_GAIN);
+  private FlywheelSubsystem rightShooter =
+      new FlywheelSubsystem(
+          CANMappings.SHOOTER_RIGHT,
+          true,
+          FlywheelConstants.RIGHT_P_GAIN,
+          FlywheelConstants.RIGHT_STATIC_GAIN,
+          FlywheelConstants.RIGHT_VELOCITY_GAIN,
+          FlywheelConstants.RIGHT_ACCELERATION_GAIN);
 
   public ShootSubsystem() {
     super();

@@ -65,12 +65,15 @@ public class ShooterConstants {
     public static final double POSITION_CONVERSION_FACTOR = Math.PI * 0.0762;
     public static final double VELOCITY_CONVERSION_FACTOR = POSITION_CONVERSION_FACTOR / 60;
 
-    public static final double P_GAIN = 0;
-    public static final double I_GAIN = 0;
-    public static final double D_GAIN = 0;
+    public static final double LEFT_P_GAIN = 0.030199;
+    public static final double LEFT_STATIC_GAIN = 0.16585;
+    public static final double LEFT_VELOCITY_GAIN = 0.45119;
+    public static final double LEFT_ACCELERATION_GAIN = 0.033088;
 
-    public static final double STATIC_GAIN = 0;
-    public static final double VELOCITY_GAIN = 0.6;
+    public static final double RIGHT_P_GAIN = 0.083503;
+    public static final double RIGHT_STATIC_GAIN = 0.064828;
+    public static final double RIGHT_VELOCITY_GAIN = 0.44043;
+    public static final double RIGHT_ACCELERATION_GAIN = 0.041871;
   }
 
   public static final class IntermediateConstants {
