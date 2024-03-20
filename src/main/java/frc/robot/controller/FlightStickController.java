@@ -50,4 +50,16 @@ public class FlightStickController implements Controller {
   public double getDriveTurn() {
     return MathUtil.applyDeadband(-controller.getRawAxis(2), 0.5);
   }
+
+  @Override
+  public Trigger adjustUp() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'adjustUp'");
+  }
+
+  @Override
+  public Trigger adjustDown() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'adjustDown'");
+  }
 }

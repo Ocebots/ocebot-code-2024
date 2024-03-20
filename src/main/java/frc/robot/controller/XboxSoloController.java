@@ -51,4 +51,14 @@ public class XboxSoloController implements Controller {
   public double getDriveTurn() {
     return MathUtil.applyDeadband(-controller.getRightX(), ControllerConstants.DRIVE_DEADBAND);
   }
+
+  @Override
+  public Trigger adjustUp() {
+    return controller.povUp();
+  }
+
+  @Override
+  public Trigger adjustDown() {
+    return controller.povDown();
+  }
 }

@@ -84,6 +84,11 @@ public class ShootSubsystem extends SubsystemBase {
         setHeightAndTilt(ShooterConstants.INTAKE_HEIGHT, ShooterConstants.INTAKE_ANGLE));
   }
 
+  public Command adjust(boolean isForward) {
+    return Commands.runEnd(
+        () -> intermediate.set(0.3 * (isForward ? 1 : -1)), () -> intermediate.set(0.0), this);
+  }
+
   @Override
   public void periodic() {
     logInfo();

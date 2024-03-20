@@ -47,6 +47,8 @@ public class RobotContainer {
 
     subsystems.add(shooter);
     subsystems.add(driveSubsystem);
+    this.controller.adjustUp().whileTrue(shooter.adjust(true));
+    this.controller.adjustDown().whileTrue(shooter.adjust(false));
 
     this.controller
         .scoreSpeaker()
