@@ -6,7 +6,7 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 
 public class ShooterConstants {
   public static final double INTAKE_HEIGHT = 0;
-  public static final Rotation2d INTAKE_ANGLE = Rotation2d.fromDegrees(224);
+  public static final Rotation2d INTAKE_ANGLE = Rotation2d.fromDegrees(225);
 
   public static final class TiltConstants {
     public static final double GRAVITY_GAIN = 0;
@@ -60,7 +60,7 @@ public class ShooterConstants {
     public static int CURRENT_LIMIT = 50;
     public static IdleMode IDLE_MODE = IdleMode.kCoast;
 
-    public static final double TOLERANCE = 0.5;
+    public static final double TOLERANCE = 1.5;
 
     public static final double POSITION_CONVERSION_FACTOR = Math.PI * 0.0762;
     public static final double VELOCITY_CONVERSION_FACTOR = POSITION_CONVERSION_FACTOR / 60;
@@ -92,7 +92,7 @@ public class ShooterConstants {
     public static final double POSITION_CONVERSION_FACTOR = (1.0 / 15.0) * Math.PI * 0.0508;
     public static final double VELOCITY_CONVERSION_FACTOR = POSITION_CONVERSION_FACTOR / 60.0;
 
-    public static final double STATIC_GAIN = 1;
+    public static final double STATIC_GAIN = 10;
     public static final double VELOCITY_GAIN = 0.3;
 
     public static final double MAX_VELOCITY = 0.5;
@@ -101,11 +101,11 @@ public class ShooterConstants {
     public static final double FINAL_OFFSET = 0.30;
   }
 
-  public static final Rotation2d AMP_ANGLE = Rotation2d.fromDegrees(140);
-  public static final double AMP_HEIGHT = 0.285;
+  public static final Rotation2d AMP_ANGLE = Rotation2d.fromDegrees(135);
+  public static final double AMP_HEIGHT = 0.30;
   public static final double AMP_SPEED = 4;
   public static final double SPEAKER_SCORE_HEIGHT = 0.05;
 
-  public static final double AUTOAIM_GAIN = 225;
-  public static final double AUTOAIM_EXPONENT = -0.0782;
+  public static final double AUTOAIM_GAIN = 226;
+  public static final double AUTOAIM_EXPONENT = -0.0803;
 }
