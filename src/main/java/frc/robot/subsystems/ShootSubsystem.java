@@ -136,50 +136,8 @@ public class ShootSubsystem extends SubsystemBase {
 
   /** Move the note into the correct position within the robot */
   public Command completeIntake() {
-    PIDController controller =
-        new PIDController(
-            IntermediateConstants.P_GAIN,
-            IntermediateConstants.I_GAIN,
-            IntermediateConstants.D_GAIN);
-    SimpleMotorFeedforward feedforward =
-        new SimpleMotorFeedforward(
-            IntermediateConstants.STATIC_GAIN, IntermediateConstants.VELOCITY_GAIN);
-    TrapezoidProfile profile =
-        new TrapezoidProfile(
-            new TrapezoidProfile.Constraints(
-                IntermediateConstants.MAX_VELOCITY, IntermediateConstants.MAX_ACCELERATION));
-
-    Timer timer = new Timer();
-    timer.start();
-
-    return Commands.runOnce(() -> intermediateEncoder.setPosition(0.0))
-        .andThen(
-            Commands.runEnd(
-                    () -> {
-                      double currentPosititon = intermediateEncoder.getPosition();
-                      TrapezoidProfile.State desiredState =
-                          profile.calculate(
-                              timer.get(),
-                              new TrapezoidProfile.State(
-                                  currentPosititon, intermediateEncoder.getVelocity()),
-                              new TrapezoidProfile.State(IntermediateConstants.FINAL_OFFSET, 0));
-
-                      intermediate.setVoltage(
-                          controller.calculate(currentPosititon, desiredState.position)
-                              + feedforward.calculate(desiredState.velocity));
-                    },
-                    () -> {
-                      intermediate.set(0);
-                      controller.close();
-                      SmartDashboard.putBoolean("shooter/hasNote", true);
-                    },
-                    this)
-                .until(
-                    () -> {
-                      double currentPosition = intermediateEncoder.getPosition();
-
-                      return currentPosition >= IntermediateConstants.FINAL_OFFSET;
-                    }));
+    return Commands.runEnd(() -> intermediate.set(-0.2), () -> intermediate.set(0))
+        .withTimeout(0.2);
   }
 
   /** Set the height and tilt of the shooter. This command does require the current subsystem */
