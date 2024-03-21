@@ -17,8 +17,8 @@ public class ShooterConstants {
     public static final double I_GAIN = 0;
     public static final double D_GAIN = 0;
 
-    public static final double MAX_ANGULAR_VELOCITY = 4.0;
-    public static final double MAX_ANGULAR_ACCELERATION = 2.0;
+    public static final double MAX_ANGULAR_VELOCITY = 6.0;
+    public static final double MAX_ANGULAR_ACCELERATION = 3.0;
 
     public static final TrapezoidProfile.Constraints CONSTRAINTS =
         new TrapezoidProfile.Constraints(MAX_ANGULAR_VELOCITY, MAX_ANGULAR_ACCELERATION);
@@ -41,8 +41,8 @@ public class ShooterConstants {
     public static final double I_GAIN = 0;
     public static final double D_GAIN = 0;
 
-    public static final double MAX_VELOCITY = 0.5;
-    public static final double MAX_ACCELERATION = 0.5;
+    public static final double MAX_VELOCITY = 1;
+    public static final double MAX_ACCELERATION = 0.75;
 
     public static final TrapezoidProfile.Constraints CONSTRAINTS =
         new TrapezoidProfile.Constraints(MAX_VELOCITY, MAX_ACCELERATION);
@@ -107,5 +107,5 @@ public class ShooterConstants {
   public static final double SPEAKER_SCORE_HEIGHT = 0.05;
 
   public static final double AUTOAIM_GAIN = 226;
-  public static final double AUTOAIM_EXPONENT = -0.0803;
+  public static final double AUTOAIM_EXPONENT = -0.0852;
 }
