@@ -28,6 +28,7 @@ import frc.constants.DriveConstants;
 import frc.constants.VisionConstants;
 import frc.robot.auto.Vision;
 import frc.utils.SwerveUtils;
+import java.util.function.Supplier;
 import org.photonvision.PhotonPoseEstimator;
 
 public class DriveSubsystem extends SubsystemBase {
@@ -322,6 +323,10 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
   public Command alignWithHeading(Rotation2d angle) {
+    return alignWithHeading(() -> angle);
+  }
+
+  public Command alignWithHeading(Supplier<Rotation2d> angle) {
     ProfiledPIDController controller =
         new ProfiledPIDController(
             DriveConstants.TURN_P_GAIN,
@@ -335,7 +340,7 @@ public class DriveSubsystem extends SubsystemBase {
     return new ProfiledPIDCommand(
             controller,
             () -> MathUtil.angleModulus(getPose().getRotation().getRadians()),
-            () -> new TrapezoidProfile.State(MathUtil.angleModulus(angle.getRadians()), 0),
+            () -> new TrapezoidProfile.State(MathUtil.angleModulus(angle.get().getRadians()), 0),
             (value, _targetState) -> this.drive(0, 0, value, false, false),
             this)
         .until(() -> controller.atGoal());

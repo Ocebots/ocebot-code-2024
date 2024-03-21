@@ -43,16 +43,11 @@ public class RobotContainer {
   private void configureBindings() {
     this.controller.intake().onTrue(intake.intake(shooter));
 
-    HashSet<Subsystem> subsystems = new HashSet<>();
 
-    subsystems.add(shooter);
-    subsystems.add(driveSubsystem);
     this.controller.adjustUp().whileTrue(shooter.adjust(true));
     this.controller.adjustDown().whileTrue(shooter.adjust(false));
 
-    this.controller
-        .scoreSpeaker()
-        .onTrue(Commands.defer(() -> shooter.scoreSpeaker(driveSubsystem), subsystems));
+    this.controller.scoreSpeaker().onTrue(shooter.scoreSpeaker(driveSubsystem));
     this.controller.scoreAmp().onTrue(shooter.scoreAmp());
   }
 

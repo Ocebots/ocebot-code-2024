@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
@@ -29,6 +30,7 @@ import frc.constants.ShooterConstants.IntermediateConstants;
 import frc.robot.subsystems.shooter.FlywheelSubsystem;
 import frc.robot.subsystems.shooter.HeightSubsystem;
 import frc.robot.subsystems.shooter.TiltSubsystem;
+import java.util.HashSet;
 
 public class ShootSubsystem extends SubsystemBase {
   private final CANSparkMax intermediate =
@@ -156,29 +158,33 @@ public class ShootSubsystem extends SubsystemBase {
    * Using the current position of the robot, score a note into the speaker. If that is not
    * possible, do nothing
    */
-  public Command scoreSpeaker(DriveSubsystem drive) {
-    Pose2d currentPos = drive.getPose();
+  private Command scoreSpeakerInner(DriveSubsystem drive) {
     Pose2d speakerPose =
         DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
             ? new Pose2d(0.229997, 5.54787, Rotation2d.fromDegrees(0))
             : new Pose2d(16.5412 - 0.229997, 5.54787, Rotation2d.fromDegrees(0));
 
-    Rotation2d angle = speakerPose.getTranslation().minus(currentPos.getTranslation()).getAngle();
-
-    double distance = speakerPose.getTranslation().getDistance(currentPos.getTranslation());
-
-    Rotation2d shootAngle =
-        Rotation2d.fromDegrees(
-            ShooterConstants.AUTOAIM_GAIN * Math.pow(distance, ShooterConstants.AUTOAIM_EXPONENT));
-    // Rotation2d shootAngle = Rotation2d.fromDegrees(SmartDashboard.getNumber("angle", 200));
-
-    System.out.println(distance);
-    System.out.println(shootAngle.getDegrees());
+    HashSet<Subsystem> subsystems = new HashSet<>();
+    subsystems.add(this);
 
     return drive
-        .alignWithHeading(angle)
-        .alongWith(setHeightAndTilt(ShooterConstants.SPEAKER_SCORE_HEIGHT, shootAngle))
-        .andThen(shoot(20));
+        .alignWithHeading(
+            () -> speakerPose.getTranslation().minus(drive.getPose().getTranslation()).getAngle())
+        .alongWith(
+            Commands.defer(
+                () -> {
+                  double distance =
+                      speakerPose.getTranslation().getDistance(drive.getPose().getTranslation());
+
+                  Rotation2d angle =
+                      Rotation2d.fromDegrees(
+                          ShooterConstants.AUTOAIM_GAIN
+                              * Math.pow(distance, ShooterConstants.AUTOAIM_EXPONENT));
+
+                  return setHeightAndTilt(ShooterConstants.SPEAKER_SCORE_HEIGHT, angle);
+                },
+                subsystems))
+        .andThen(shoot(24));
   }
 
   public Command climb() {
@@ -221,5 +227,14 @@ public class ShootSubsystem extends SubsystemBase {
             routine.dynamic(Direction.kReverse),
             routine.quasistatic(Direction.kForward),
             routine.quasistatic(Direction.kReverse));
+  }
+
+  public Command scoreSpeaker(DriveSubsystem driveSubsystem) {
+    HashSet<Subsystem> subsystems = new HashSet<>();
+
+    subsystems.add(this);
+    subsystems.add(driveSubsystem);
+
+    return Commands.defer(() -> scoreSpeakerInner(driveSubsystem), subsystems);
   }
 }
