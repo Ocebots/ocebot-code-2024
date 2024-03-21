@@ -7,6 +7,7 @@ package frc.robot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.Subsystem;
+import frc.robot.auto.AutoAmpAlign;
 import frc.robot.controller.Controller;
 import frc.robot.controller.XboxSoloController;
 import frc.robot.subsystems.DriveSubsystem;
@@ -50,6 +51,8 @@ public class RobotContainer {
 
     this.controller.scoreSpeaker().onTrue(shooter.scoreSpeaker(driveSubsystem));
     this.controller.scoreAmp().onTrue(shooter.scoreAmp());
+
+    this.controller.alignAmp().whileTrue(new AutoAmpAlign(driveSubsystem, shooter));
   }
 
   public Command getAutonomousCommand() {

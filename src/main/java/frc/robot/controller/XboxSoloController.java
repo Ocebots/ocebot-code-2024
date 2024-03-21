@@ -30,7 +30,8 @@ public class XboxSoloController implements Controller {
 
   @Override
   public Trigger failNoteCam() {
-    return controller.x();
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'alignAmp'");
   }
 
   @Override
@@ -65,5 +66,10 @@ public class XboxSoloController implements Controller {
   @Override
   public Trigger scoreProtected() {
     return controller.leftBumper();
+  }
+
+  @Override
+  public Trigger alignAmp() {
+    return controller.x();
   }
 }

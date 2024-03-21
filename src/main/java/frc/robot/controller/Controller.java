@@ -37,4 +37,6 @@ public interface Controller {
   Trigger adjustDown();
 
   Trigger scoreProtected();
+
+  Trigger alignAmp();
 }

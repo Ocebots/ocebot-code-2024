@@ -68,4 +68,10 @@ public class FlightStickController implements Controller {
     // TODO Auto-generated method stub
     throw new UnsupportedOperationException("Unimplemented method 'scoreProtected'");
   }
+
+  @Override
+  public Trigger alignAmp() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'alignAmp'");
+  }
 }
