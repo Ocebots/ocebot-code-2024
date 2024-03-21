@@ -6,14 +6,12 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.auto.AutoAmpAlign;
 import frc.robot.controller.Controller;
 import frc.robot.controller.XboxSoloController;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShootSubsystem;
-import java.util.HashSet;
 
 public class RobotContainer {
   DriveSubsystem driveSubsystem = new DriveSubsystem();
