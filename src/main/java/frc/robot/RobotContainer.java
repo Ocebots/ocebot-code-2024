@@ -43,6 +43,7 @@ public class RobotContainer {
   private void configureBindings() {
     this.controller.intake().onTrue(intake.intake(shooter));
 
+    this.controller.scoreProtected().onTrue(shooter.scoreProtected());
 
     this.controller.adjustUp().whileTrue(shooter.adjust(true));
     this.controller.adjustDown().whileTrue(shooter.adjust(false));

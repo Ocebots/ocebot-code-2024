@@ -61,4 +61,9 @@ public class XboxSoloController implements Controller {
   public Trigger adjustDown() {
     return controller.povDown();
   }
+
+  @Override
+  public Trigger scoreProtected() {
+    return controller.leftBumper();
+  }
 }

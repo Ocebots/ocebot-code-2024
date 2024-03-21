@@ -35,4 +35,6 @@ public interface Controller {
   Trigger adjustUp();
 
   Trigger adjustDown();
+
+  Trigger scoreProtected();
 }

@@ -154,6 +154,10 @@ public class ShootSubsystem extends SubsystemBase {
         .andThen(shoot(ShooterConstants.AMP_SPEED));
   }
 
+  public Command scoreProtectedInner() {
+    return setHeightAndTilt(0.254, Rotation2d.fromDegrees(203)).andThen(shoot(24));
+  }
+
   /**
    * Using the current position of the robot, score a note into the speaker. If that is not
    * possible, do nothing
@@ -236,5 +240,13 @@ public class ShootSubsystem extends SubsystemBase {
     subsystems.add(driveSubsystem);
 
     return Commands.defer(() -> scoreSpeakerInner(driveSubsystem), subsystems);
+  }
+
+  public Command scoreProtected() {
+    HashSet<Subsystem> subsystems = new HashSet<>();
+
+    subsystems.add(this);
+
+    return Commands.defer(() -> scoreProtectedInner(), subsystems);
   }
 }
