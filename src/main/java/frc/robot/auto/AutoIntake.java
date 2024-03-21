@@ -60,7 +60,7 @@ public class AutoIntake extends SequentialCommandGroup {
                       points,
                       AutoConstants.PATH_CONSTRAINTS,
                       new GoalEndState(
-                          0, Rotation2d.fromDegrees(0))); // TODO: Ensure final rotation is correct
+                          0, targetPose.getRotation())); // TODO: Ensure final rotation is correct
 
               path.preventFlipping = true;
 
