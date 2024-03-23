@@ -34,4 +34,14 @@ public interface Controller {
   double getDriveBrake();
 
   // TODO: Climb
+
+  Trigger adjustUp();
+
+  Trigger adjustDown();
+
+  Trigger scoreProtected();
+
+  Trigger alignAmp();
+
+  Trigger climb();
 }

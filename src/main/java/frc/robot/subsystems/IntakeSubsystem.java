@@ -23,7 +23,7 @@ public class IntakeSubsystem extends SubsystemBase {
   /**
    * @return a command that will run forever that sets the motor to intake
    */
-  private Command runIntake(boolean inverted) {
+  public Command runIntake(boolean inverted) {
     return Commands.runEnd(
         () -> motor.set(IntakeConstants.SPEED * (inverted ? -1 : 1)), () -> motor.set(0), this);
   }

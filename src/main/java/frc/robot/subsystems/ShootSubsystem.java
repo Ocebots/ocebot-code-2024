@@ -7,25 +7,26 @@ import static edu.wpi.first.units.Units.Volts;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.constants.CANMappings;
 import frc.constants.ShooterConstants;
+import frc.constants.ShooterConstants.FlywheelConstants;
 import frc.constants.ShooterConstants.IntermediateConstants;
 import frc.robot.subsystems.shooter.FlywheelSubsystem;
 import frc.robot.subsystems.shooter.HeightSubsystem;
 import frc.robot.subsystems.shooter.TiltSubsystem;
+import java.util.HashSet;
 
 public class ShootSubsystem extends SubsystemBase {
   private final CANSparkMax intermediate =
@@ -38,8 +39,22 @@ public class ShootSubsystem extends SubsystemBase {
   private final TiltSubsystem tiltSubsystem = new TiltSubsystem();
   private final HeightSubsystem heightSubsystem = new HeightSubsystem();
 
-  private FlywheelSubsystem leftShooter = new FlywheelSubsystem(CANMappings.SHOOTER_LEFT, false);
-  private FlywheelSubsystem rightShooter = new FlywheelSubsystem(CANMappings.SHOOTER_RIGHT, true);
+  private FlywheelSubsystem leftShooter =
+      new FlywheelSubsystem(
+          CANMappings.SHOOTER_LEFT,
+          false,
+          FlywheelConstants.LEFT_P_GAIN,
+          FlywheelConstants.LEFT_STATIC_GAIN,
+          FlywheelConstants.LEFT_VELOCITY_GAIN,
+          FlywheelConstants.LEFT_ACCELERATION_GAIN);
+  private FlywheelSubsystem rightShooter =
+      new FlywheelSubsystem(
+          CANMappings.SHOOTER_RIGHT,
+          true,
+          FlywheelConstants.RIGHT_P_GAIN,
+          FlywheelConstants.RIGHT_STATIC_GAIN,
+          FlywheelConstants.RIGHT_VELOCITY_GAIN,
+          FlywheelConstants.RIGHT_ACCELERATION_GAIN);
 
   public ShootSubsystem() {
     super();
@@ -65,6 +80,12 @@ public class ShootSubsystem extends SubsystemBase {
 
     this.setDefaultCommand(
         setHeightAndTilt(ShooterConstants.INTAKE_HEIGHT, ShooterConstants.INTAKE_ANGLE));
+  }
+
+  public Command adjust(boolean isForward, IntakeSubsystem intake) {
+    return Commands.runEnd(
+            () -> intermediate.set(0.3 * (isForward ? 1 : -1)), () -> intermediate.set(0.0), this)
+        .alongWith(intake.runIntake(!isForward));
   }
 
   @Override
@@ -108,56 +129,14 @@ public class ShootSubsystem extends SubsystemBase {
 
   /** Wait until a note has been detected by the intermediate motor */
   public Command waitForIntake() {
-    return Commands.runEnd(() -> intermediate.set(1), () -> intermediate.set(0.0))
+    return Commands.runEnd(() -> intermediate.set(0.4), () -> intermediate.set(0.0))
         .raceWith(Commands.waitUntil(() -> limitSwitch.get()));
   }
 
   /** Move the note into the correct position within the robot */
   public Command completeIntake() {
-    PIDController controller =
-        new PIDController(
-            IntermediateConstants.P_GAIN,
-            IntermediateConstants.I_GAIN,
-            IntermediateConstants.D_GAIN);
-    SimpleMotorFeedforward feedforward =
-        new SimpleMotorFeedforward(
-            IntermediateConstants.STATIC_GAIN, IntermediateConstants.VELOCITY_GAIN);
-    TrapezoidProfile profile =
-        new TrapezoidProfile(
-            new TrapezoidProfile.Constraints(
-                IntermediateConstants.MAX_VELOCITY, IntermediateConstants.MAX_ACCELERATION));
-
-    Timer timer = new Timer();
-    timer.start();
-
-    return Commands.runOnce(() -> intermediateEncoder.setPosition(0.0))
-        .andThen(
-            Commands.runEnd(
-                    () -> {
-                      double currentPosititon = intermediateEncoder.getPosition();
-                      TrapezoidProfile.State desiredState =
-                          profile.calculate(
-                              timer.get(),
-                              new TrapezoidProfile.State(
-                                  currentPosititon, intermediateEncoder.getVelocity()),
-                              new TrapezoidProfile.State(IntermediateConstants.FINAL_OFFSET, 0));
-
-                      intermediate.setVoltage(
-                          controller.calculate(currentPosititon, desiredState.position)
-                              + feedforward.calculate(desiredState.velocity));
-                    },
-                    () -> {
-                      intermediate.set(0);
-                      controller.close();
-                      SmartDashboard.putBoolean("shooter/hasNote", true);
-                    },
-                    this)
-                .until(
-                    () -> {
-                      double currentPosition = intermediateEncoder.getPosition();
-
-                      return currentPosition >= IntermediateConstants.FINAL_OFFSET;
-                    }));
+    return Commands.runEnd(() -> intermediate.set(-0.2), () -> intermediate.set(0))
+        .withTimeout(0.2);
   }
 
   /** Set the height and tilt of the shooter. This command does require the current subsystem */
@@ -172,17 +151,52 @@ public class ShootSubsystem extends SubsystemBase {
         .andThen(shoot(ShooterConstants.AMP_SPEED));
   }
 
+  public Command scoreProtected() {
+    return setHeightAndTilt(0.254, Rotation2d.fromDegrees(203)).andThen(shoot(24));
+  }
+
+  public Pose2d getSpeakerPose() {
+    return DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+        ? new Pose2d(0.229997, 5.54787, Rotation2d.fromDegrees(0))
+        : new Pose2d(16.5412 - 0.229997, 5.54787, Rotation2d.fromDegrees(0));
+  }
+
   /**
    * Using the current position of the robot, score a note into the speaker. If that is not
    * possible, do nothing
    */
-  public Command scoreSpeaker(Pose2d currentPos) {
-    return setHeightAndTilt(ShooterConstants.SPEAKER_SCORE_HEIGHT, Rotation2d.fromDegrees(240))
-        .andThen(shoot(20));
+  public Command scoreSpeaker(DriveSubsystem drive) {
+    HashSet<Subsystem> subsystems = new HashSet<>();
+    subsystems.add(this);
+
+    return drive
+        .alignWithHeading(
+            () ->
+                getSpeakerPose()
+                    .getTranslation()
+                    .minus(drive.getPose().getTranslation())
+                    .getAngle())
+        .alongWith(
+            Commands.defer(
+                () -> {
+                  double distance =
+                      getSpeakerPose()
+                          .getTranslation()
+                          .getDistance(drive.getPose().getTranslation());
+
+                  Rotation2d angle =
+                      Rotation2d.fromDegrees(
+                          ShooterConstants.AUTOAIM_GAIN
+                              * Math.pow(distance, ShooterConstants.AUTOAIM_EXPONENT));
+
+                  return setHeightAndTilt(ShooterConstants.SPEAKER_SCORE_HEIGHT, angle);
+                },
+                subsystems))
+        .andThen(shoot(24));
   }
 
   public Command climb() {
-    return null; // TODO: Climb onto the chain
+    return setHeightAndTilt(0.3, Rotation2d.fromDegrees(150)).andThen(Commands.run(() -> {}, this));
   }
 
   public Command sysId() {

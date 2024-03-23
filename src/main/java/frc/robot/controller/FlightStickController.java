@@ -5,9 +5,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.constants.ControllerConstants;
 
-/**
- * WARNING: Not fully implemented
- */
+/** WARNING: Not fully implemented */
 public class FlightStickController implements Controller {
 
   CommandGenericHID controller = new CommandGenericHID(0);
@@ -30,13 +28,15 @@ public class FlightStickController implements Controller {
   @Override
   public Trigger failPosEstimate() {
     // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'failPosEstimate'. Why are you using the flight stick?!");
+    throw new UnsupportedOperationException(
+        "Unimplemented method 'failPosEstimate'. Why are you using the flight stick?!");
   }
 
   @Override
   public Trigger failNoteCam() {
     // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'failNoteCam'. Why are you using the flight stick?!");
+    throw new UnsupportedOperationException(
+        "Unimplemented method 'failNoteCam'. Why are you using the flight stick?!");
   }
 
   @Override
@@ -55,6 +55,37 @@ public class FlightStickController implements Controller {
   }
 
   public double getDriveBrake() {
-    throw new UnsupportedOperationException("Unimplemented method 'getDriveBrake'. Why are you using the flight stick?!");
+    throw new UnsupportedOperationException(
+        "Unimplemented method 'getDriveBrake'. Why are you using the flight stick?!");
+  }
+
+  @Override
+  public Trigger adjustUp() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'adjustUp'");
+  }
+
+  @Override
+  public Trigger adjustDown() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'adjustDown'");
+  }
+
+  @Override
+  public Trigger scoreProtected() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'scoreProtected'");
+  }
+
+  @Override
+  public Trigger alignAmp() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'alignAmp'");
+  }
+
+  @Override
+  public Trigger climb() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'climb'");
   }
 }

@@ -5,16 +5,15 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.constants.ControllerConstants;
 
-
 /*
-  Intake - A Button
-    Score Speaker - Left Trigger
-    Score Amp - Right Bumper
-    Position Estimate Fallback - B Button
-    Note Cam Fallback - X Button
-    Drive - Left Stick
-    Turn - Right Stick
- */
+ Intake - A Button
+   Score Speaker - Left Trigger
+   Score Amp - Right Bumper
+   Position Estimate Fallback - B Button
+   Note Cam Fallback - X Button
+   Drive - Left Stick
+   Turn - Right Stick
+*/
 public class XboxSoloController implements Controller {
   CommandXboxController controller = new CommandXboxController(0);
 
@@ -40,7 +39,8 @@ public class XboxSoloController implements Controller {
 
   @Override
   public Trigger failNoteCam() {
-    return controller.x();
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'alignAmp'");
   }
 
   @Override
@@ -64,5 +64,30 @@ public class XboxSoloController implements Controller {
 
   public double getDriveBrake() {
     return controller.getRightTriggerAxis();
+  }
+
+  @Override
+  public Trigger adjustUp() {
+    return controller.povUp();
+  }
+
+  @Override
+  public Trigger adjustDown() {
+    return controller.povDown();
+  }
+
+  @Override
+  public Trigger scoreProtected() {
+    return controller.leftBumper();
+  }
+
+  @Override
+  public Trigger alignAmp() {
+    return controller.x();
+  }
+
+  @Override
+  public Trigger climb() {
+    return controller.y();
   }
 }
