@@ -27,6 +27,7 @@ import frc.constants.CANMappings;
 import frc.constants.DriveConstants;
 import frc.constants.VisionConstants;
 import frc.robot.auto.Vision;
+import frc.robot.controller.Controller;
 import frc.utils.SwerveUtils;
 import java.util.function.Supplier;
 import org.photonvision.PhotonPoseEstimator;
@@ -274,6 +275,19 @@ public class DriveSubsystem extends SubsystemBase {
     this.frontRight.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)));
     this.rearLeft.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)));
     this.rearRight.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)));
+  }
+
+  /** Default periodic command. */
+  public void defaultPeriodic(Controller controller) {
+    double brake = 1 - Math.pow(controller.getDriveBrake(), 2);
+    if (brake < 0 || brake > 1)
+      brake = 0; // let's make sure we don't kill the robot for some random reason
+    this.drive(
+        controller.getDriveX() * brake,
+        controller.getDriveY() * brake,
+        controller.getDriveTurn(),
+        true,
+        true);
   }
 
   /**

@@ -40,16 +40,7 @@ public class RobotContainer {
     SmartDashboard.putData("Select Auto", autos);
 
     drive.setDefaultCommand(
-        Commands.run(
-            () -> {
-              drive.drive(
-                  controller.getDriveX(),
-                  controller.getDriveY(),
-                  controller.getDriveTurn(),
-                  true,
-                  true);
-            },
-            drive)); // Maybe change this?
+        Commands.run(() -> drive.defaultPeriodic(controller), drive)); // Maybe change this?
   }
 
   public void periodic() {

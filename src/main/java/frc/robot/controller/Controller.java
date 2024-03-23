@@ -30,6 +30,9 @@ public interface Controller {
   /** CCW is positive */
   double getDriveTurn();
 
+  /** From 0 to 1, positive is brake */
+  double getDriveBrake();
+
   // TODO: Climb
 
   Trigger adjustUp();
