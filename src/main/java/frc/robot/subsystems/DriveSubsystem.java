@@ -227,17 +227,13 @@ public class DriveSubsystem extends SubsystemBase {
     this.rearRight.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)));
   }
 
-  double msOutsideDeadzone = 0;
 
   /**
    * Default periodic command.
    */
     public void defaultPeriodic(Controller controller) {
-      if(controller.getDriveX() != 0 || controller.getDriveY() != 0) {
-        msOutsideDeadzone = MathSharedStore.getTimestamp();
-      }
       double brake = 1 - Math.pow(controller.getDriveBrake(), 2);
-      assert (brake >= 0 && brake <= 1); //let's make sure we don't kill the robot for some random reason
+      if(brake < 0 || brake > 1) brake = 0; //let's make sure we don't kill the robot for some random reason
       this.drive(
               controller.getDriveX() * brake,
               controller.getDriveY() * brake,

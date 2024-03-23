@@ -47,8 +47,6 @@ public class XboxSoloController implements Controller {
   public double getDriveX() {
     double applyDeadband =
         MathUtil.applyDeadband(-controller.getLeftY(), ControllerConstants.DRIVE_DEADBAND);
-    //apply braking trigger
-
     return Math.pow(applyDeadband, 2) * Math.signum(applyDeadband);
   }
 
