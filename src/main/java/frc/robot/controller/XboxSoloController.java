@@ -5,6 +5,16 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.constants.ControllerConstants;
 
+
+/*
+  Intake - A Button
+    Score Speaker - Left Trigger
+    Score Amp - Right Bumper
+    Position Estimate Fallback - B Button
+    Note Cam Fallback - X Button
+    Drive - Left Stick
+    Turn - Right Stick
+ */
 public class XboxSoloController implements Controller {
   CommandXboxController controller = new CommandXboxController(0);
 
@@ -20,7 +30,7 @@ public class XboxSoloController implements Controller {
 
   @Override
   public Trigger scoreAmp() {
-    return controller.rightTrigger();
+    return controller.rightBumper();
   }
 
   @Override
@@ -37,6 +47,8 @@ public class XboxSoloController implements Controller {
   public double getDriveX() {
     double applyDeadband =
         MathUtil.applyDeadband(-controller.getLeftY(), ControllerConstants.DRIVE_DEADBAND);
+    //apply braking trigger
+
     return Math.pow(applyDeadband, 2) * Math.signum(applyDeadband);
   }
 
@@ -50,5 +62,9 @@ public class XboxSoloController implements Controller {
   @Override
   public double getDriveTurn() {
     return MathUtil.applyDeadband(-controller.getRightX(), ControllerConstants.DRIVE_DEADBAND);
+  }
+
+  public double getDriveBrake() {
+    return controller.getRightTriggerAxis();
   }
 }

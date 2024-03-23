@@ -12,9 +12,11 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.*;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.constants.CANMappings;
 import frc.constants.DriveConstants;
+import frc.robot.controller.Controller;
 import frc.utils.SwerveUtils;
 
 public class DriveSubsystem extends SubsystemBase {
@@ -224,6 +226,25 @@ public class DriveSubsystem extends SubsystemBase {
     this.rearLeft.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)));
     this.rearRight.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)));
   }
+
+  double msOutsideDeadzone = 0;
+
+  /**
+   * Default periodic command.
+   */
+    public void defaultPeriodic(Controller controller) {
+      if(controller.getDriveX() != 0 || controller.getDriveY() != 0) {
+        msOutsideDeadzone = MathSharedStore.getTimestamp();
+      }
+      double brake = 1 - Math.pow(controller.getDriveBrake(), 2);
+      assert (brake >= 0 && brake <= 1); //let's make sure we don't kill the robot for some random reason
+      this.drive(
+              controller.getDriveX() * brake,
+              controller.getDriveY() * brake,
+              controller.getDriveTurn(),
+              true,
+              true);
+    }
 
   /**
    * Sets the swerve ModuleStates.

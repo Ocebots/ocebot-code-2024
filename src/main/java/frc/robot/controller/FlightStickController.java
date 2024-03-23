@@ -5,6 +5,9 @@ import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.constants.ControllerConstants;
 
+/**
+ * WARNING: Not fully implemented
+ */
 public class FlightStickController implements Controller {
 
   CommandGenericHID controller = new CommandGenericHID(0);
@@ -27,13 +30,13 @@ public class FlightStickController implements Controller {
   @Override
   public Trigger failPosEstimate() {
     // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'failPosEstimate'");
+    throw new UnsupportedOperationException("Unimplemented method 'failPosEstimate'. Why are you using the flight stick?!");
   }
 
   @Override
   public Trigger failNoteCam() {
     // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'failNoteCam'");
+    throw new UnsupportedOperationException("Unimplemented method 'failNoteCam'. Why are you using the flight stick?!");
   }
 
   @Override
@@ -49,5 +52,9 @@ public class FlightStickController implements Controller {
   @Override
   public double getDriveTurn() {
     return MathUtil.applyDeadband(-controller.getRawAxis(2), 0.5);
+  }
+
+  public double getDriveBrake() {
+    throw new UnsupportedOperationException("Unimplemented method 'getDriveBrake'. Why are you using the flight stick?!");
   }
 }

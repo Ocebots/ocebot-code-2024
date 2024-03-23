@@ -22,17 +22,7 @@ public class RobotContainer {
   public RobotContainer() {
     configureBindings();
 
-    driveSubsystem.setDefaultCommand(
-        Commands.run(
-            () -> {
-              driveSubsystem.drive(
-                  controller.getDriveX(),
-                  controller.getDriveY(),
-                  controller.getDriveTurn(),
-                  true,
-                  true);
-            },
-            driveSubsystem)); // Maybe change this?
+    driveSubsystem.setDefaultCommand(Commands.run(() -> driveSubsystem.defaultPeriodic(controller), driveSubsystem)); // Maybe change this?
   }
 
   public void periodic() {
