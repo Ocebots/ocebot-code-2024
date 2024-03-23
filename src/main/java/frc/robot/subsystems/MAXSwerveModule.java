@@ -197,5 +197,8 @@ public class MAXSwerveModule {
         module_path + "/turn/commanded", this.getDesiredState().angle.getRadians());
     SmartDashboard.putNumber(
         module_path + "/drive/commanded", this.getDesiredState().speedMetersPerSecond);
+
+    SmartDashboard.putNumber(
+        module_path + "/drive/current", this.drivingSparkMax.getOutputCurrent());
   }
 }

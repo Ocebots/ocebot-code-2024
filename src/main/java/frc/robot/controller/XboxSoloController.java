@@ -30,7 +30,8 @@ public class XboxSoloController implements Controller {
 
   @Override
   public Trigger failNoteCam() {
-    return controller.x();
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'alignAmp'");
   }
 
   @Override
@@ -50,5 +51,30 @@ public class XboxSoloController implements Controller {
   @Override
   public double getDriveTurn() {
     return MathUtil.applyDeadband(-controller.getRightX(), ControllerConstants.DRIVE_DEADBAND);
+  }
+
+  @Override
+  public Trigger adjustUp() {
+    return controller.povUp();
+  }
+
+  @Override
+  public Trigger adjustDown() {
+    return controller.povDown();
+  }
+
+  @Override
+  public Trigger scoreProtected() {
+    return controller.leftBumper();
+  }
+
+  @Override
+  public Trigger alignAmp() {
+    return controller.x();
+  }
+
+  @Override
+  public Trigger climb() {
+    return controller.y();
   }
 }

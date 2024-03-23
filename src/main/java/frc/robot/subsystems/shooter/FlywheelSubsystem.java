@@ -15,13 +15,13 @@ public class FlywheelSubsystem extends PIDSubsystem {
   public final CANSparkFlex motor;
   public final RelativeEncoder encoder;
 
-  private final SimpleMotorFeedforward feedforward =
-      new SimpleMotorFeedforward(FlywheelConstants.STATIC_GAIN, FlywheelConstants.VELOCITY_GAIN);
+  private final SimpleMotorFeedforward feedforward;
 
-  public FlywheelSubsystem(int canId, boolean inverted) {
-    super(
-        new PIDController(
-            FlywheelConstants.P_GAIN, FlywheelConstants.I_GAIN, FlywheelConstants.D_GAIN));
+  public FlywheelSubsystem(
+      int canId, boolean inverted, double pGain, double sGain, double vGain, double aGain) {
+    super(new PIDController(pGain, 0, 0));
+
+    feedforward = new SimpleMotorFeedforward(sGain, vGain, aGain);
 
     m_controller.setTolerance(FlywheelConstants.TOLERANCE);
 
@@ -70,6 +70,6 @@ public class FlywheelSubsystem extends PIDSubsystem {
   }
 
   public Command waitForVelocity(double velocity) {
-    return Commands.waitUntil(() -> m_controller.atSetpoint());
+    return Commands.waitUntil(() -> m_controller.atSetpoint()).withTimeout(1.5);
   }
 }

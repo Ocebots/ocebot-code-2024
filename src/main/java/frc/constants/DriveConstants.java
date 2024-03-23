@@ -2,6 +2,7 @@ package frc.constants;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 
 /**
@@ -39,7 +40,10 @@ public class DriveConstants {
   public static final boolean GYRO_IS_REVERSED = true;
   public static final double FREE_SPEED_RPM = 5676;
 
-  public static final double TURN_P_GAIN = 0.0;
+  public static final double TURN_P_GAIN = 1;
   public static final double TURN_I_GAIN = 0.0;
   public static final double TURN_D_GAIN = 0.0;
+
+  public static final TrapezoidProfile.Constraints TURN_CONSTRAINTS =
+      new TrapezoidProfile.Constraints(6, 12);
 }
