@@ -82,9 +82,10 @@ public class ShootSubsystem extends SubsystemBase {
         setHeightAndTilt(ShooterConstants.INTAKE_HEIGHT, ShooterConstants.INTAKE_ANGLE));
   }
 
-  public Command adjust(boolean isForward) {
+  public Command adjust(boolean isForward, IntakeSubsystem intake) {
     return Commands.runEnd(
-        () -> intermediate.set(0.3 * (isForward ? 1 : -1)), () -> intermediate.set(0.0), this);
+            () -> intermediate.set(0.3 * (isForward ? 1 : -1)), () -> intermediate.set(0.0), this)
+        .alongWith(intake.runIntake(!isForward));
   }
 
   @Override
@@ -128,7 +129,7 @@ public class ShootSubsystem extends SubsystemBase {
 
   /** Wait until a note has been detected by the intermediate motor */
   public Command waitForIntake() {
-    return Commands.runEnd(() -> intermediate.set(1), () -> intermediate.set(0.0))
+    return Commands.runEnd(() -> intermediate.set(0.4), () -> intermediate.set(0.0))
         .raceWith(Commands.waitUntil(() -> limitSwitch.get()));
   }
 
@@ -150,31 +151,38 @@ public class ShootSubsystem extends SubsystemBase {
         .andThen(shoot(ShooterConstants.AMP_SPEED));
   }
 
-  public Command scoreProtectedInner() {
+  public Command scoreProtected() {
     return setHeightAndTilt(0.254, Rotation2d.fromDegrees(203)).andThen(shoot(24));
+  }
+
+  public Pose2d getSpeakerPose() {
+    return DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+        ? new Pose2d(0.229997, 5.54787, Rotation2d.fromDegrees(0))
+        : new Pose2d(16.5412 - 0.229997, 5.54787, Rotation2d.fromDegrees(0));
   }
 
   /**
    * Using the current position of the robot, score a note into the speaker. If that is not
    * possible, do nothing
    */
-  private Command scoreSpeakerInner(DriveSubsystem drive) {
-    Pose2d speakerPose =
-        DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
-            ? new Pose2d(0.229997, 5.54787, Rotation2d.fromDegrees(0))
-            : new Pose2d(16.5412 - 0.229997, 5.54787, Rotation2d.fromDegrees(0));
-
+  public Command scoreSpeaker(DriveSubsystem drive) {
     HashSet<Subsystem> subsystems = new HashSet<>();
     subsystems.add(this);
 
     return drive
         .alignWithHeading(
-            () -> speakerPose.getTranslation().minus(drive.getPose().getTranslation()).getAngle())
+            () ->
+                getSpeakerPose()
+                    .getTranslation()
+                    .minus(drive.getPose().getTranslation())
+                    .getAngle())
         .alongWith(
             Commands.defer(
                 () -> {
                   double distance =
-                      speakerPose.getTranslation().getDistance(drive.getPose().getTranslation());
+                      getSpeakerPose()
+                          .getTranslation()
+                          .getDistance(drive.getPose().getTranslation());
 
                   Rotation2d angle =
                       Rotation2d.fromDegrees(
@@ -188,7 +196,7 @@ public class ShootSubsystem extends SubsystemBase {
   }
 
   public Command climb() {
-    return null; // TODO: Climb onto the chain
+    return setHeightAndTilt(0.3, Rotation2d.fromDegrees(150)).andThen(Commands.run(() -> {}, this));
   }
 
   public Command sysId() {
@@ -227,22 +235,5 @@ public class ShootSubsystem extends SubsystemBase {
             routine.dynamic(Direction.kReverse),
             routine.quasistatic(Direction.kForward),
             routine.quasistatic(Direction.kReverse));
-  }
-
-  public Command scoreSpeaker(DriveSubsystem driveSubsystem) {
-    HashSet<Subsystem> subsystems = new HashSet<>();
-
-    subsystems.add(this);
-    subsystems.add(driveSubsystem);
-
-    return Commands.defer(() -> scoreSpeakerInner(driveSubsystem), subsystems);
-  }
-
-  public Command scoreProtected() {
-    HashSet<Subsystem> subsystems = new HashSet<>();
-
-    subsystems.add(this);
-
-    return Commands.defer(() -> scoreProtectedInner(), subsystems);
   }
 }

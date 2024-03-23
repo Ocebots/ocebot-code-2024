@@ -39,4 +39,6 @@ public interface Controller {
   Trigger scoreProtected();
 
   Trigger alignAmp();
+
+  Trigger climb();
 }

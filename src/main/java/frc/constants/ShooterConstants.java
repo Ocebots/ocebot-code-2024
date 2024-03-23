@@ -60,7 +60,7 @@ public class ShooterConstants {
     public static int CURRENT_LIMIT = 50;
     public static IdleMode IDLE_MODE = IdleMode.kCoast;
 
-    public static final double TOLERANCE = 1.5;
+    public static final double TOLERANCE = 1.0;
 
     public static final double POSITION_CONVERSION_FACTOR = Math.PI * 0.0762;
     public static final double VELOCITY_CONVERSION_FACTOR = POSITION_CONVERSION_FACTOR / 60;

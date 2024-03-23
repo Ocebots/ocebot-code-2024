@@ -70,6 +70,6 @@ public class FlywheelSubsystem extends PIDSubsystem {
   }
 
   public Command waitForVelocity(double velocity) {
-    return Commands.waitUntil(() -> m_controller.atSetpoint());
+    return Commands.waitUntil(() -> m_controller.atSetpoint()).withTimeout(1.5);
   }
 }

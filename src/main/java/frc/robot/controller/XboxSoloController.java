@@ -72,4 +72,9 @@ public class XboxSoloController implements Controller {
   public Trigger alignAmp() {
     return controller.x();
   }
+
+  @Override
+  public Trigger climb() {
+    return controller.y();
+  }
 }

@@ -1,72 +1,67 @@
 package frc.robot.auto;
 
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.path.GoalEndState;
-import com.pathplanner.lib.path.PathPlannerPath;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.util.Units;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.PIDCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import frc.constants.AutoConstants;
-import frc.constants.VisionConstants;
+import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShootSubsystem;
-import java.util.List;
-import org.photonvision.PhotonUtils;
+import java.util.HashSet;
+import org.photonvision.PhotonCamera;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 public class AutoIntake extends SequentialCommandGroup {
+  PhotonTrackedTarget target;
+
   public AutoIntake(
       DriveSubsystem driveSubsystem,
       IntakeSubsystem intakeSubsystem,
       ShootSubsystem shootSubsystem) {
+    PhotonCamera camera = Vision.getNoteCamera();
+
+    HashSet<Subsystem> subsystems = new HashSet<>();
+
+    subsystems.add(driveSubsystem);
+    subsystems.add(intakeSubsystem);
+    subsystems.add(shootSubsystem);
+
     addCommands(
-        Commands.waitUntil(() -> Vision.getNoteCamera().getLatestResult().hasTargets()),
-        Commands.deferredProxy(
+        Commands.waitUntil(() -> camera.getLatestResult().hasTargets()),
+        Commands.defer(
             () -> {
-              PhotonTrackedTarget target = Vision.getNoteCamera().getLatestResult().getBestTarget();
-              double yaw = target.getYaw();
-              double pitch = target.getPitch();
+              PIDController controller = new PIDController(0.01, 0, 0);
+              controller.setTolerance(3);
 
-              double range =
-                  PhotonUtils.calculateDistanceToTargetMeters(
-                      VisionConstants.CAMERA_HEIGHT_METERS,
-                      VisionConstants.NOTE_TARGET_HEIGHT_METERS,
-                      VisionConstants.CAMERA_PITCH_RADIANS,
-                      Units.degreesToRadians(pitch));
+              return new PIDCommand(
+                      controller,
+                      () -> {
+                        if (camera.getLatestResult().hasTargets()) {
+                          target = camera.getLatestResult().getBestTarget();
+                        }
 
-              Translation2d targetTranslation =
-                  PhotonUtils.estimateCameraToTargetTranslation(range, Rotation2d.fromDegrees(-yaw))
-                      .rotateBy(Rotation2d.fromDegrees(180))
-                      .rotateBy(
-                          driveSubsystem
-                              .getPose()
-                              .getRotation()); // TODO: Is this the correct rotation?
-
-              Pose2d targetPose =
-                  driveSubsystem
-                      .getPose()
-                      .transformBy(new Transform2d(targetTranslation, Rotation2d.fromRadians(0)));
-
-              List<Translation2d> points =
-                  PathPlannerPath.bezierFromPoses(driveSubsystem.getPose(), targetPose);
-
-              PathPlannerPath path =
-                  new PathPlannerPath(
-                      points,
-                      AutoConstants.PATH_CONSTRAINTS,
-                      new GoalEndState(
-                          0, targetPose.getRotation())); // TODO: Ensure final rotation is correct
-
-              path.preventFlipping = true;
-
-              // TODO: Keep updating the target estimate
-
-              return AutoBuilder.followPath(path).alongWith(intakeSubsystem.intake(shootSubsystem));
-            }));
+                        return target.getYaw();
+                      },
+                      () -> 0,
+                      (val) ->
+                          driveSubsystem.drive(
+                              0, 0, Math.max(Math.min(val, 0.5), -0.5), true, false),
+                      driveSubsystem)
+                  .until(() -> controller.atSetpoint())
+                  .andThen(
+                      intakeSubsystem
+                          .intake(shootSubsystem)
+                          .deadlineWith(
+                              Commands.runEnd(
+                                      () -> driveSubsystem.drive(-0.2, 0, 0, false, false),
+                                      () -> driveSubsystem.drive(0, 0, 0, false, false),
+                                      driveSubsystem)
+                                  .raceWith(
+                                      Commands.waitUntil(
+                                              () -> !camera.getLatestResult().hasTargets())
+                                          .andThen(Commands.waitSeconds(0.4)))));
+            },
+            subsystems));
   }
 }
