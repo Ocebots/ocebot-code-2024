@@ -37,12 +37,12 @@ public class APDS9960 {
   }
 
   /**
-   *
    * @param reg The register you'd like to write to
-   * @param value What you'd like to write, should be in the correct position e.g. 0b10100000 if you are writing 1010 to the first four bits
+   * @param value What you'd like to write, should be in the correct position e.g. 0b10100000 if you
+   *     are writing 1010 to the first four bits
    * @param mask Should be 0b11110000 if you are overwriting the first four bits
    */
-  private void overwrite (byte reg, byte value, byte mask) {
+  private void overwrite(byte reg, byte value, byte mask) {
     byte[] read = new byte[1];
     i2c.read(reg, 1, read);
     i2c.write(reg, (byte) ((read[0] & ~mask) | (value & mask)));
