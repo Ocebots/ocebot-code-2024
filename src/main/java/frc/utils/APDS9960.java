@@ -45,7 +45,7 @@ public class APDS9960 {
   private void overwrite (byte reg, byte value, byte mask) {
     byte[] read = new byte[1];
     i2c.read(reg, 1, read);
-    i2c.write(reg, (byte) ((read[0] & ~mask) | value));
+    i2c.write(reg, (byte) ((read[0] & ~mask) | (value & mask)));
   }
 
   /**
