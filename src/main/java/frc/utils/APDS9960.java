@@ -4,7 +4,7 @@ import edu.wpi.first.wpilibj.I2C;
 import frc.constants.VisionConstants;
 
 public class APDS9960 {
-  I2C i2c = new I2C(I2C.Port.kOnboard, VisionConstants.APDS9960_I2C_ADDRESS);
+  I2C i2c = new I2C(I2C.Port.kMXP, VisionConstants.APDS9960_I2C_ADDRESS);
 
   public APDS9960() {
     init();
@@ -39,8 +39,8 @@ public class APDS9960 {
   /**
    * @param reg The register you'd like to write to
    * @param value What you'd like to write, should be in the correct position e.g. 0b10100000 if you
-   *     are writing 1010 to the first four bits
-   * @param mask Should be 0b11110000 if you are overwriting the first four bits
+   *     are writing 1010 to the last four bits
+   * @param mask Should be 0b11110000 if you are overwriting the last four bits
    */
   private void overwrite(byte reg, byte value, byte mask) {
     byte[] read = new byte[1];
