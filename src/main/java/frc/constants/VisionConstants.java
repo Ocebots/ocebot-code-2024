@@ -19,4 +19,5 @@ public class VisionConstants {
   public static double CAMERA_HEIGHT_METERS = 0.2667;
   public static double NOTE_TARGET_HEIGHT_METERS = 0;
   public static double CAMERA_PITCH_RADIANS = 0.523599;
+  public static final int APDS9960_I2C_ADDRESS = 0x39;
 }
