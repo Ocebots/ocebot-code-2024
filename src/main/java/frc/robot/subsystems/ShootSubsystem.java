@@ -26,6 +26,8 @@ import frc.constants.ShooterConstants.IntermediateConstants;
 import frc.robot.subsystems.shooter.FlywheelSubsystem;
 import frc.robot.subsystems.shooter.HeightSubsystem;
 import frc.robot.subsystems.shooter.TiltSubsystem;
+import frc.utils.APDS9960;
+
 import java.util.HashSet;
 
 public class ShootSubsystem extends SubsystemBase {
@@ -34,7 +36,8 @@ public class ShootSubsystem extends SubsystemBase {
 
   private final RelativeEncoder intermediateEncoder = intermediate.getEncoder();
 
-  private final DigitalInput limitSwitch = new DigitalInput(0);
+  private final DigitalInput interrupt = new DigitalInput(0);
+  private final APDS9960 distanceSensor = new APDS9960();
 
   private final TiltSubsystem tiltSubsystem = new TiltSubsystem();
   private final HeightSubsystem heightSubsystem = new HeightSubsystem();
@@ -80,6 +83,11 @@ public class ShootSubsystem extends SubsystemBase {
 
     this.setDefaultCommand(
         setHeightAndTilt(ShooterConstants.INTAKE_HEIGHT, ShooterConstants.INTAKE_ANGLE));
+
+    distanceSensor.init();
+    distanceSensor.setProximityHighThreshold((byte) 25);
+    distanceSensor.setProximityLowThreshold((byte) 0);
+    distanceSensor.setProximityPersistence((byte) 1);
   }
 
   public Command adjust(boolean isForward, IntakeSubsystem intake) {
@@ -95,7 +103,7 @@ public class ShootSubsystem extends SubsystemBase {
 
   public void logInfo() {
     SmartDashboard.putNumber("shooter/inter/current", intermediateEncoder.getPosition());
-    SmartDashboard.putBoolean("shooter/inter/detected", limitSwitch.get());
+    // SmartDashboard.putBoolean("shooter/inter/detected", limitSwitch.get());
   }
 
   /**
@@ -130,7 +138,8 @@ public class ShootSubsystem extends SubsystemBase {
   /** Wait until a note has been detected by the intermediate motor */
   public Command waitForIntake() {
     return Commands.runEnd(() -> intermediate.set(0.4), () -> intermediate.set(0.0))
-        .raceWith(Commands.waitUntil(() -> limitSwitch.get()));
+        .raceWith(Commands.runOnce(() -> distanceSensor.clearInterrupts()))
+        .raceWith(Commands.waitUntil(() -> !interrupt.get()));
   }
 
   /** Move the note into the correct position within the robot */
