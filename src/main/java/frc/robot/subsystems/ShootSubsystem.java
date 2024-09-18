@@ -27,7 +27,6 @@ import frc.robot.subsystems.shooter.FlywheelSubsystem;
 import frc.robot.subsystems.shooter.HeightSubsystem;
 import frc.robot.subsystems.shooter.TiltSubsystem;
 import frc.utils.APDS9960;
-
 import java.util.HashSet;
 
 public class ShootSubsystem extends SubsystemBase {
