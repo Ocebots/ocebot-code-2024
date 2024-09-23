@@ -1,6 +1,10 @@
 package frc.robot.auto;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.PIDCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
@@ -14,6 +18,7 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 
 public class AutoIntake extends SequentialCommandGroup {
   PhotonTrackedTarget target;
+  ChassisSpeeds driveBack = null;
 
   public AutoIntake(
       DriveSubsystem driveSubsystem,
@@ -53,10 +58,34 @@ public class AutoIntake extends SequentialCommandGroup {
                       intakeSubsystem
                           .intake(shootSubsystem)
                           .deadlineWith(
-                              Commands.runEnd(
-                                      () -> driveSubsystem.drive(-0.2, 0, 0, false, false),
-                                      () -> driveSubsystem.drive(0, 0, 0, false, false),
-                                      driveSubsystem)
+                              Commands.runOnce(
+                                      () -> {
+                                        driveBack =
+                                            ChassisSpeeds.fromRobotRelativeSpeeds(
+                                                -0.2,
+                                                0.0,
+                                                0.0,
+                                                driveSubsystem
+                                                    .getPose()
+                                                    .getRotation()
+                                                    .plus(
+                                                        DriverStation.getAlliance()
+                                                                    .orElse(Alliance.Blue)
+                                                                == Alliance.Blue
+                                                            ? Rotation2d.fromDegrees(0)
+                                                            : Rotation2d.fromDegrees(180)));
+                                      })
+                                  .andThen(
+                                      Commands.runEnd(
+                                          () ->
+                                              driveSubsystem.drive(
+                                                  driveBack.vxMetersPerSecond,
+                                                  driveBack.vyMetersPerSecond,
+                                                  driveBack.omegaRadiansPerSecond,
+                                                  true,
+                                                  false),
+                                          () -> driveSubsystem.drive(0, 0, 0, false, false),
+                                          driveSubsystem))
                                   .raceWith(
                                       Commands.waitUntil(
                                               () -> !camera.getLatestResult().hasTargets())
