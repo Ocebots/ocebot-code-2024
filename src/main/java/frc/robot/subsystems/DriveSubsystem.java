@@ -66,8 +66,6 @@ public class DriveSubsystem extends SubsystemBase {
   private double currentRotation = 0.0;
 
   // Slew rate filter variables for controlling lateral acceleration
-  private double currentTranslationDir = 0.0; // radian
-  private double currentTranslationMag = 0.0; // meter per second
   private SlewRateLimiter magLimiter = new SlewRateLimiter(DriveConstants.MAX_ACCELERATION);
 
   private double prevTime = MathSharedStore.getTimestamp();
@@ -204,49 +202,10 @@ public class DriveSubsystem extends SubsystemBase {
                   * DriveConstants.MAX_SPEED_METERS_PER_SECOND,
               DriveConstants.MAX_SPEED_METERS_PER_SECOND);
 
-      // If either translation magnitudes are low enough, it's direction is irrelevant
-      if (currentTranslationMag < 0.1) {
-        currentTranslationDir = inputTranslationDir;
-      } else if (inputTranslationMag < 0.1) {
-        inputTranslationDir = currentTranslationDir;
-      }
+      inputTranslationMag = magLimiter.calculate(inputTranslationMag);
 
-      // If the new direction is over 90º from the current direction, slow the robot
-      // to a near stop before continuing. The block above activates when the robot
-      // has slowed down enough
-      if (SwerveUtils.angleDifference(inputTranslationDir, currentTranslationDir) > Math.PI / 2.0) {
-        inputTranslationDir = currentTranslationDir;
-        inputTranslationMag *= -1;
-      }
-
-      // Decrease the requested speed based on how far the current translation
-      // direction is from the requested one. A 90º angle means the requested
-      // magnitude is 0, a 0º angle means the magnitude is unchanged.
-      inputTranslationMag *=
-          1
-              - SwerveUtils.angleDifference(inputTranslationDir, currentTranslationDir)
-                  / (Math.PI / 2);
-
-      // Set the direction limit to a percent of the maxiumum based on the percent of
-      // max speed we are currently going at. This is limited to prevent fully
-      // disabling steering and leaves it at 10%.
-      double dirLimit =
-          Math.max(
-              0,
-              DriveConstants.MAX_DRIVE_ANGULAR_VELOCITY
-                  * ((1 - currentTranslationMag / DriveConstants.MAX_SPEED_METERS_PER_SECOND) * 0.30
-                      + 0.70));
-
-      double currentTime = MathSharedStore.getTimestamp();
-
-      this.currentTranslationMag = magLimiter.calculate(inputTranslationMag);
-      this.currentTranslationDir =
-          SwerveUtils.stepTowardsCircular(
-              currentTranslationDir, inputTranslationDir, dirLimit * (currentTime - prevTime));
-
-      prevTime = currentTime;
-      xSpeedCommanded = this.currentTranslationMag * Math.cos(currentTranslationDir);
-      ySpeedCommanded = this.currentTranslationMag * Math.sin(currentTranslationDir);
+      xSpeedCommanded = inputTranslationMag * Math.cos(inputTranslationDir);
+      ySpeedCommanded = inputTranslationMag * Math.sin(inputTranslationDir);
       this.currentRotation = rotLimiter.calculate(rot) * DriveConstants.MAX_ANGULAR_SPEED;
     } else {
       xSpeedCommanded = xSpeed * DriveConstants.MAX_SPEED_METERS_PER_SECOND;
@@ -279,12 +238,9 @@ public class DriveSubsystem extends SubsystemBase {
 
   /** Default periodic command. */
   public void defaultPeriodic(Controller controller) {
-    double brake = 1 - Math.pow(controller.getDriveBrake(), 2);
-    if (brake < 0 || brake > 1)
-      brake = 0; // let's make sure we don't kill the robot for some random reason
     this.drive(
-        controller.getDriveX() * brake,
-        controller.getDriveY() * brake,
+        controller.getDriveX(),
+        controller.getDriveY(),
         controller.getDriveTurn(),
         true,
         true);

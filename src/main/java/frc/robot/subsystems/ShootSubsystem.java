@@ -87,12 +87,19 @@ public class ShootSubsystem extends SubsystemBase {
     distanceSensor.setProximityHighThreshold((byte) 25);
     distanceSensor.setProximityLowThreshold((byte) 0);
     distanceSensor.setProximityPersistence((byte) 1);
+    distanceSensor.clearInterrupts();
   }
 
   public Command adjust(boolean isForward, IntakeSubsystem intake) {
     return Commands.runEnd(
             () -> intermediate.set(0.3 * (isForward ? 1 : -1)), () -> intermediate.set(0.0), this)
         .alongWith(intake.runIntake(!isForward));
+  }
+
+  public Command stuck() {
+    return setHeightAndTilt(0.05, ShooterConstants.AMP_ANGLE)
+        .andThen(waitForIntake())
+        .andThen(completeIntake());
   }
 
   @Override
@@ -102,7 +109,7 @@ public class ShootSubsystem extends SubsystemBase {
 
   public void logInfo() {
     SmartDashboard.putNumber("shooter/inter/current", intermediateEncoder.getPosition());
-    // SmartDashboard.putBoolean("shooter/inter/detected", limitSwitch.get());
+    SmartDashboard.putBoolean("shooter/inter/detected", interrupt.get());
   }
 
   /**
@@ -136,9 +143,10 @@ public class ShootSubsystem extends SubsystemBase {
 
   /** Wait until a note has been detected by the intermediate motor */
   public Command waitForIntake() {
-    return Commands.runEnd(() -> intermediate.set(0.4), () -> intermediate.set(0.0))
-        .raceWith(Commands.runOnce(() -> distanceSensor.clearInterrupts()))
-        .raceWith(Commands.waitUntil(() -> !interrupt.get()));
+    return Commands.runEnd(() -> intermediate.set(1.0), () -> intermediate.set(0.0))
+        .raceWith(
+            Commands.runOnce(() -> distanceSensor.clearInterrupts())
+                .andThen(Commands.waitUntil(() -> !interrupt.get())));
   }
 
   /** Move the note into the correct position within the robot */

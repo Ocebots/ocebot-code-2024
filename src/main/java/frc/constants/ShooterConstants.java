@@ -6,19 +6,19 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 
 public class ShooterConstants {
   public static final double INTAKE_HEIGHT = 0;
-  public static final Rotation2d INTAKE_ANGLE = Rotation2d.fromDegrees(225);
+  public static final Rotation2d INTAKE_ANGLE = Rotation2d.fromDegrees(222);
 
   public static final class TiltConstants {
     public static final double GRAVITY_GAIN = 0;
     public static final double STATIC_GAIN = 0;
     public static final double VELOCITY_GAIN = 0;
 
-    public static final double P_GAIN = 6;
+    public static final double P_GAIN = 8;
     public static final double I_GAIN = 0;
     public static final double D_GAIN = 0;
 
-    public static final double MAX_ANGULAR_VELOCITY = 6.0;
-    public static final double MAX_ANGULAR_ACCELERATION = 3.0;
+    public static final double MAX_ANGULAR_VELOCITY = 10.0;
+    public static final double MAX_ANGULAR_ACCELERATION = 6.0;
 
     public static final TrapezoidProfile.Constraints CONSTRAINTS =
         new TrapezoidProfile.Constraints(MAX_ANGULAR_VELOCITY, MAX_ANGULAR_ACCELERATION);
@@ -41,8 +41,8 @@ public class ShooterConstants {
     public static final double I_GAIN = 0;
     public static final double D_GAIN = 0;
 
-    public static final double MAX_VELOCITY = 1;
-    public static final double MAX_ACCELERATION = 0.75;
+    public static final double MAX_VELOCITY = 1.5;
+    public static final double MAX_ACCELERATION = 1.0;
 
     public static final TrapezoidProfile.Constraints CONSTRAINTS =
         new TrapezoidProfile.Constraints(MAX_VELOCITY, MAX_ACCELERATION);
@@ -81,7 +81,7 @@ public class ShooterConstants {
     public static final IdleMode IDLE_MODE = IdleMode.kCoast;
 
     public static final double SHOOT_SPEED = 1;
-    public static final double SHOOT_TIME = 1;
+    public static final double SHOOT_TIME = .3;
 
     public static final double P_GAIN = 25;
     public static final double I_GAIN = 0;

@@ -89,7 +89,7 @@ public class AutoIntake extends SequentialCommandGroup {
                                   .raceWith(
                                       Commands.waitUntil(
                                               () -> !camera.getLatestResult().hasTargets())
-                                          .andThen(Commands.waitSeconds(0.4)))));
+                                          .andThen(Commands.waitSeconds(0.6)))));
             },
             subsystems));
   }

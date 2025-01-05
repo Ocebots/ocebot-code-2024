@@ -15,12 +15,15 @@ public class Autos {
         shooter.scoreSpeaker(drive),
         AutoBuilder.followPath(PathPlannerPath.fromChoreoTrajectory("Left Subwoofer to Left Note")),
         new AutoIntake(drive, intake, shooter),
+        AutoBuilder.followPath(PathPlannerPath.fromChoreoTrajectory("Left Note to Middle")),
         shooter.scoreSpeaker(drive),
         AutoBuilder.followPath(PathPlannerPath.fromChoreoTrajectory("Left Note to Middle Note")),
         new AutoIntake(drive, intake, shooter),
+        AutoBuilder.followPath(PathPlannerPath.fromChoreoTrajectory("Middle Note to Middle")),
         shooter.scoreSpeaker(drive),
         AutoBuilder.followPath(PathPlannerPath.fromChoreoTrajectory("Middle Note to Right Note")),
         new AutoIntake(drive, intake, shooter),
+        AutoBuilder.followPath(PathPlannerPath.fromChoreoTrajectory("Right Note to Middle")),
         shooter.scoreSpeaker(drive));
   }
 
@@ -43,6 +46,14 @@ public class Autos {
         AutoBuilder.followPath(PathPlannerPath.fromChoreoTrajectory("Out the Way to Far")),
         new AutoIntake(drive, intake, shooter),
         AutoBuilder.followPath(PathPlannerPath.fromChoreoTrajectory("Far to Out the Way")),
+        shooter.scoreSpeaker(drive));
+  }
+
+  public static Command twoPiece(
+      DriveSubsystem drive, IntakeSubsystem intake, ShootSubsystem shooter) {
+    return Commands.sequence(
+        shooter.scoreSpeaker(drive),
+        new AutoIntake(drive, intake, shooter),
         shooter.scoreSpeaker(drive));
   }
 }

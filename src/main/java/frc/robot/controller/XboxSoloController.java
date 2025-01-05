@@ -19,6 +19,11 @@ public class XboxSoloController implements Controller {
 
   @Override
   public Trigger intake() {
+    return controller.b();
+  }
+
+  @Override
+  public Trigger manualIntake() {
     return controller.a();
   }
 
@@ -29,18 +34,7 @@ public class XboxSoloController implements Controller {
 
   @Override
   public Trigger scoreAmp() {
-    return controller.rightBumper();
-  }
-
-  @Override
-  public Trigger failPosEstimate() {
-    return controller.b();
-  }
-
-  @Override
-  public Trigger failNoteCam() {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'alignAmp'");
+    return controller.rightTrigger();
   }
 
   @Override
@@ -62,13 +56,14 @@ public class XboxSoloController implements Controller {
     return MathUtil.applyDeadband(-controller.getRightX(), ControllerConstants.DRIVE_DEADBAND);
   }
 
-  public double getDriveBrake() {
-    return controller.getRightTriggerAxis();
-  }
-
   @Override
   public Trigger adjustUp() {
     return controller.povUp();
+  }
+
+  @Override
+  public Trigger stuck() {
+    return controller.povRight();
   }
 
   @Override
@@ -77,13 +72,8 @@ public class XboxSoloController implements Controller {
   }
 
   @Override
-  public Trigger scoreProtected() {
+  public Trigger scoreHigh() {
     return controller.leftBumper();
-  }
-
-  @Override
-  public Trigger alignAmp() {
-    return controller.x();
   }
 
   @Override

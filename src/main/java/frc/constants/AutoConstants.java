@@ -33,6 +33,6 @@ public class AutoConstants {
           new PIDConstants(PX_CONTROLLER),
           new PIDConstants(P_THETA_CONTROLLER),
           DriveConstants.MAX_SPEED_METERS_PER_SECOND,
-          0.0, // TODO: Find proper radius
+          0.5, // TODO: Find proper radius
           new ReplanningConfig());
 }
